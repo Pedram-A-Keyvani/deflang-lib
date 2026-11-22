@@ -1,8 +1,10 @@
 // ---- rounding (looser than math: x / y rounded to 2 places)
 
 // Rounds a number to A1 decimal places.
-// Example: 22.857 rounded to 1 places
+// Example: 22.857 rounded to 1 place
 //          → 22.9
+// Example: 22.857 rounded to 2 places
+//          → 22.86
 def python A0 rounded to A1 places
 def python A0 rounded to A1 place
     return number(round(number(A0), number(A1)))

@@ -116,7 +116,7 @@ big on average
 
 | Words | Does | Example |
 |---|---|---|
-| `A0 rounded to A1 places`<br>`A0 rounded to A1 place` | Rounds a number to A1 decimal places. | `22.857 rounded to 1 places` |
+| `A0 rounded to A1 places`<br>`A0 rounded to A1 place` | Rounds a number to A1 decimal places. | `22.857 rounded to 1 place`<br>`22.857 rounded to 2 places` |
 | `A0 rounded` | Rounds a number to the nearest whole number. | `2.6 rounded` |
 | `A0 + A1` | Adds two numbers. | `2 plus 3` |
 | `A0 - A1` | Subtracts A1 from A0. | `10 - 4` |
