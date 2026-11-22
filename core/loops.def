@@ -1,0 +1,27 @@
+// ---- loops (the part after ":" runs each time; use a def for several lines)
+
+// Runs the line after the colon A0 times.
+// Example: repeat 3 times: say "hi"
+//          → prints hi, hi, hi
+def python as written repeat A0 times : A1
+    for _ in range(number(self.run(A0))):
+        self.run(A1)
+
+// Runs the line after the colon once for each item of the list A1, with the item in A0.
+// Example: for each n in [1, 2, 3]: say n * 2
+//          → prints 2, 4, 6
+def python as written for each A0 in A1 : A2
+    for ITEM in self.run(A1):
+        self.variables[A0] = ITEM
+        self.run(A2)
+
+// Runs the line after the colon as long as A0 is true. Stops with an error after 100000 times.
+// Example: repeat while n < 5: n is n + 2
+//          → n is 6, when n was 0
+def python as written repeat while A0 : A1
+    COUNT = 0
+    while self.run(A0):
+        self.run(A1)
+        COUNT += 1
+        if COUNT >= 100000:
+            raise DefException("repeat while ran 100000 times: is '" + A0 + "' ever false?")

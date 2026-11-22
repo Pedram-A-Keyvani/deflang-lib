@@ -1,0 +1,112 @@
+use javascript
+
+argument is A
+comment is //
+
+// The script of a single page application. Put it in the page with <script def="web script"></script>, and each view in a <template>, like <template def="bmi view"></template>; the view for the address shows in the element that holds the templates. A view is <view path="/bmi" title="BMI calculator" loads="/api/x"> ... </view> (path="*" is any other address; loads asks an api when the view opens). It marks every link to the address with aria-current, sends a <form api="/api/x"> to that api, fills each {name} with the answer (as text, never as HTML) and opens the hidden element around it, keeps a view's <style def="name"></style> to that view, runs a view's <script def="name"></script> with `view` as the view's element (it hears an "answer" event with each answer), shows an error in the view's role="alert" element (or one it adds), and switches views without reloading when a link to "/..." is clicked or Back is pressed.
+// Example: serve site page at "/", with <script def="web script"></script> in def html site page
+//          → every address shows its view, and links switch views without reloading (not checked)
+def javascript web script
+    (() => {
+      const templates = [...document.querySelectorAll('template')].filter(t => t.content.querySelector('view'));
+      const views = templates.flatMap(t => [...t.content.querySelectorAll('view')]);
+      /* the view shows where its templates are */
+      const outlet = templates[0].parentElement;
+      const current = () => location.pathname.replace(/\/+$/, '') || '/';
+      let view = null;
+      async function api(path, params) {
+        const response = await fetch(path + '?' + new URLSearchParams(params || {}));
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || response.statusText);
+        return data;
+      }
+      /* each {name} in the view's text becomes a field an answer fills in */
+      function fields(root) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const texts = [];
+        while (walker.nextNode()) {
+          const text = walker.currentNode;
+          if (/\{\w+\}/.test(text.data) && !text.parentElement.closest('script, style')) texts.push(text);
+        }
+        for (const text of texts) {
+          text.replaceWith(...text.data.split(/\{(\w+)\}/).map((part, i) => {
+            if (i % 2 === 0) return part;
+            const field = document.createElement('span');
+            field.dataset.field = part;
+            return field;
+          }));
+        }
+      }
+      /* each value goes into its {name} as text, never as HTML; then the view hears "answer" */
+      function fill(data) {
+        for (const [name, value] of Object.entries(data)) {
+          for (const element of view.querySelectorAll('[data-field="' + name + '"]')) {
+            element.textContent = value;
+            const hidden = element.closest('[hidden]');
+            if (hidden) hidden.hidden = false;
+          }
+        }
+        view.dispatchEvent(new CustomEvent('answer', { detail: data }));
+      }
+      function showError(error) {
+        let box = view.querySelector('[role="alert"]');
+        if (!box && !error) return;
+        if (!box) {
+          box = document.createElement('p');
+          box.className = 'error';
+          box.setAttribute('role', 'alert');
+          view.append(box);
+        }
+        box.textContent = error ? error.message : '';
+        box.hidden = !error;
+      }
+      function render() {
+        const path = current();
+        const found = views.find(v => v.getAttribute('path') === path) || views.find(v => v.getAttribute('path') === '*');
+        /* a new element for each opening, so a script's listeners leave with its view */
+        view = document.createElement('div');
+        for (const child of found.childNodes) view.append(document.importNode(child, true));
+        /* the view's scripts run below, with `view`, not when it is shown */
+        const scripts = [...view.querySelectorAll('script[def]')];
+        for (const script of scripts) script.remove();
+        /* a view's <style>s only style that view, and leave with it */
+        view.dataset.view = found.getAttribute('path');
+        for (const style of view.querySelectorAll('style')) {
+          style.textContent = '[data-view="' + CSS.escape(view.dataset.view) + '"] { ' + style.textContent + ' }';
+        }
+        fields(view);
+        for (const child of [...outlet.children]) if (child.tagName !== 'TEMPLATE') child.remove();
+        outlet.append(view);
+        document.title = found.getAttribute('title') || document.title;
+        for (const link of document.querySelectorAll('a[href]')) link.toggleAttribute('aria-current', link.getAttribute('href') === path);
+        for (const form of view.querySelectorAll('form[api]')) {
+          form.addEventListener('submit', async event => {
+            event.preventDefault();
+            showError(null);
+            /* its submit buttons wait for the answer; a form may have none */
+            const buttons = [...form.querySelectorAll('button:not([type="button"]):not([type="reset"]), input[type="submit"]')];
+            for (const button of buttons) button.disabled = true;
+            try { fill(await api(form.getAttribute('api'), Object.fromEntries(new FormData(form)))); }
+            catch (error) { showError(error); }
+            finally { for (const button of buttons) button.disabled = false; }
+          });
+        }
+        for (const script of scripts) {
+          try { new Function('view', script.textContent)(view); }
+          catch (error) { showError(new Error(script.getAttribute('def') + ': ' + error.message)); }
+        }
+        if (found.getAttribute('loads')) api(found.getAttribute('loads')).then(fill, showError);
+        view.querySelector('input')?.focus();
+      }
+      /* a link to "/..." that isn't a file switches the view */
+      document.addEventListener('click', event => {
+        const link = event.target.closest('a[href^="/"]');
+        if (!link || /\.[^/]*$/.test(link.getAttribute('href')) || link.target || link.hasAttribute('download')) return;
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        if (link.getAttribute('href') !== location.pathname) history.pushState(null, '', link.href);
+        render();
+      });
+      window.addEventListener('popstate', render);
+      render();
+    })();

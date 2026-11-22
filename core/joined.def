@@ -1,0 +1,10 @@
+// ---- joined text: a def like any other. The defs above wrap it (say, is, ...);
+// the ones below run inside it, so  say n " x 7 = " n * 7  joins n, " x 7 = " and (n * 7)
+
+// Text and values next to each other join into one text.
+// Example: "x = " 2
+//          → "x = 2"
+def python A0 "A1" A2
+def python "A0" A1
+def python A0 "A1"
+    return "".join(as_text(value) for value in a)

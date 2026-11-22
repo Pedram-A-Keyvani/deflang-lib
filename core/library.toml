@@ -1,0 +1,3 @@
+name = "core"
+version = "0.1.0"
+description = "The words of def-lang: values, questions, loops, lists, text, comparison and math"

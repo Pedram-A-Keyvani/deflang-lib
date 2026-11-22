@@ -1,0 +1,21 @@
+// numbers written in words: twenty one, one hundred and five, two thousand twenty six
+// Example: one hundred and five
+//          → 105
+def python as written (A0: (?:(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)(?:\s+and\s+|-|\s+|$))+)
+    UNITS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+    TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+    SCALES = {"thousand": 1000, "million": 1000000, "billion": 1000000000}
+    TOTAL = CURRENT = 0
+    for WORD in A0.replace("-", " ").split():
+        if WORD == "and":
+            continue
+        if WORD in UNITS:
+            CURRENT += UNITS.index(WORD)
+        elif WORD in TENS:
+            CURRENT += TENS.index(WORD) * 10
+        elif WORD == "hundred":
+            CURRENT = (CURRENT or 1) * 100
+        else:
+            TOTAL += (CURRENT or 1) * SCALES[WORD]
+            CURRENT = 0
+    return TOTAL + CURRENT

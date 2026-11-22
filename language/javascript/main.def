@@ -1,0 +1,10 @@
+argument is A
+comment is //
+
+// JavaScript for the browser: the body is the def's value, as code, with A0, A1, ... filled in as JavaScript values. An HTML def puts it in with <script def="name"></script>.
+// Example: greet "Sam", with def javascript greet A0 whose body is alert(A0)
+//          → "alert(\"Sam\")" (not checked)
+language javascript
+    import json
+    # a value cannot end the page's <script> early
+    return fill(BODY, [json.dumps(value).replace("</", "<\\/") for value in VAR])

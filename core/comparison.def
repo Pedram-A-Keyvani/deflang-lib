@@ -1,0 +1,63 @@
+// ---- comparison (longer symbols first, so >= isn't read as >)
+
+// True if the number A0 is greater than or equal to A1.
+// Example: 3 greater than or equal to 3
+//          → True
+def python A0 >= A1
+    return number(A0) >= number(A1)
+
+// True if the number A0 is greater than A1.
+// Example: 5 > 3
+//          → True
+def python A0 > A1
+    return number(A0) > number(A1)
+
+// True if the number A0 is less than or equal to A1.
+// Example: 4 <= 3
+//          → False
+def python A0 <= A1
+    return number(A0) <= number(A1)
+
+// True if the number A0 is less than A1.
+// Example: 2 is less than 3
+//          → True
+def python A0 < A1
+    return number(A0) < number(A1)
+
+// True if A0 and A1 are equal: as numbers when both are numbers, otherwise as text.
+// Example: "Paris" = "Paris"
+//          → True
+def python A0 = A1
+    try:
+        return number(A0) == number(A1)
+    except DefException:
+        return A0 == A1
+
+
+// True if the text A0 contains A1, or the list A0 has the item A1.
+// Example: "hello" contains "ell"
+//          → True
+def python A0 contains A1
+    return A1 in A0
+
+
+// Words for the comparison symbols. Longer phrases are replaced first.
+// Example: 5 greater than 3
+//          → True
+is greater than or equal to means >=
+greater than or equal to means >=
+is greater than means >
+greater than means >
+is less than or equal to means <=
+less than or equal to means <=
+is less than means <
+less than means <
+is equal to means =
+equal to means =
+
+// x is between 1 and 10  /  is x between 1 and 10?
+// Example: 5 is between 1 and 10
+//          → True
+def A0 is between A1 and A2
+def A0 between A1 and A2
+    both A0 > A1 and A0 < A2

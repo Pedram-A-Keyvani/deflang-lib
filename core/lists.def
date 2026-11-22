@@ -1,0 +1,34 @@
+// ---- lists
+
+// Checks every item of the list A0 against A1; an error names the first item that fails.
+// Example: [1, 2, 3] each of them is > 1
+//          → error: 1 is not > 1
+def python as written A0 each of them is A1
+    for item in self.run(A0):
+        if not self.run(as_code(item) + " " + A1):
+            self.run("error " + as_text(item) + " is not " + A1)
+
+// True if an item of the list A0 equals A1; that item becomes "it".
+// Example: one of [11, 5] is 11
+//          → True, and it is 11
+def python as written one of A0 is A1
+    ITEMS = self.run(A0)
+    TARGET = self.run(A1)
+    self.variables["them"] = ITEMS
+    for INDEX, ITEM in enumerate(ITEMS):
+        if ITEM == TARGET:
+            self.store("core")["it"] = (ITEMS, INDEX)
+            self.variables["it"] = ITEM
+            return True
+    return False
+
+// Replaces "it" (found by `one of ... is ...`) in its list with A0.
+// Example: it should be converted to 1
+//          → cards is [1, 5], when cards was [11, 5], after one of cards is 11
+def python it should be converted to A0
+def python it becomes A0
+    if self.store("core").get("it") is None:
+        raise DefException("there is no 'it' yet: ask 'one of ... is ...?' first")
+    ITEMS, INDEX = self.store("core")["it"]
+    ITEMS[INDEX] = A0
+    self.variables["it"] = A0

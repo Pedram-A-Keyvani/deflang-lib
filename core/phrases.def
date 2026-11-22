@@ -1,0 +1,38 @@
+// Questions can also start with is, are, does or do:  is a > 5 ?
+// Example: is 5 > 3 ?
+//          → yes
+def as written is A0 ?
+def are A0 ?
+def does A0 ?
+def do A0 ?
+    A0 ?
+
+// "the numbers" is just "numbers"
+// Example: the numbers
+//          → [3, 4], when numbers was [3, 4]
+def as written the A0
+    A0
+
+// "their sum" is "sum of them" (them is the last list used)
+// Example: their sum
+//          → 7, when them was [3, 4]
+def as written their A0
+    A0 of them
+
+// all of numbers are > 3
+// Example: all of [1, 2] are > 1
+//          → error: 1 is not > 1
+def as written all of A0 are A1
+    A0 each of them is A1
+
+// print is another word for say
+// Example: print "hi"
+//          → prints hi
+print means say
+
+// x is empty  /  is x empty?
+// Example: [] is empty
+//          → True
+def A0 is empty
+def A0 empty
+    count of A0 = 0

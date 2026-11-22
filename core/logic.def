@@ -1,0 +1,19 @@
+// ---- logic
+
+// True if A0 or A1 is true.
+// Example: either 1 > 2 or 3 > 2
+//          → True
+def python either A0 or A1
+    return bool(A0) or bool(A1)
+
+// True if A0 and A1 are both true.
+// Example: both 1 < 2 and 3 > 2
+//          → True
+def python both A0 and A1
+    return bool(A0) and bool(A1)
+
+// The opposite of A0.
+// Example: not 1 > 2
+//          → True
+def python not A0
+    return not A0
