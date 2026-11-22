@@ -33,7 +33,8 @@ def python server on port A0 for everyone
 // Example: page "/hello" shows "<h1>Hi</h1>"
 //          → GET /hello answers <h1>Hi</h1>
 def python as written page A0 shows A1
-    self.store("web").setdefault("pages", {})[as_text(self.run(A0))] = A1
+    # with the file of this line: a visit runs A1 with that file's variables
+    self.store("web").setdefault("pages", {})[as_text(self.run(A0))] = (A1, self.variables.file)
 
 // The website's assets (css, images, any file) are the files in the folder A0, sent as they are: /style.css is A0/style.css. The folder is relative to the program.
 // Example: the assets are in "files"
@@ -58,19 +59,19 @@ def python query A0
 // Example: api "/api/sum" runs total is sum of [1, 2] and sends total
 //          → GET /api/sum answers {"total": 3}
 def python as written api A0 runs A1 and sends A2
-    self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (A1, [name.strip() for name in A2.split(",")])
+    self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (A1, [name.strip() for name in A2.split(",")], self.variables.file)
 
 // At the address A0, sends the values named in A1 (separated by commas) as JSON: defs (run for this request) or shared variables.
 // Example: api "/api/visits" sends visits
 //          → GET /api/visits answers {"visits": 3}, when visits was 3
 def python as written api A0 sends A1
-    self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (None, [name.strip() for name in A1.split(",")])
+    self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (None, [name.strip() for name in A1.split(",")], self.variables.file)
 
 // Shows A0 at the address A1 and every address under it (A1 "/" is /, /bmi, /hello, ...) that no api, page or asset answers and that has no file extension. A0 runs again on every visit. For a single page application, so its links and refreshes work; with several, the longest address wins.
 // Example: serve "<p>app</p>" at "/"
 //          → GET /bmi answers <p>app</p>
 def python as written serve A0 at A1
-    self.store("web").setdefault("served", {})[as_text(self.run(A1)).rstrip("/") or "/"] = A0
+    self.store("web").setdefault("served", {})[as_text(self.run(A1)).rstrip("/") or "/"] = (A0, self.variables.file)
 
 // The address of the page being visited, like /hello.
 // Example: requested path, for GET /hello
@@ -91,9 +92,8 @@ def python template A0
 // Starts the website. It runs until Ctrl+C. How it runs comes from settings.toml in the program's folder, if there is one, and the file is read again whenever it is saved, while the website runs:
 //   port = 8000          the port (it wins over `server on port`)
 //   everyone = false     true: other computers on the network can connect
-//   reload = false       true: a changed .def file's defs are read again when a page is visited
-//   check_every = 1      seconds between checks for changes, of this file and the .def files (at least 0.1)
-// A new port or everyone opens the new server before the old one closes; variables and defs stay. A setting that can't be used is reported and the last settings stay. A reloaded file's new `use` lines are loaded too; only main.def itself needs a restart.
+//   watch = 0            seconds between looking for changed .def files, when a page is visited; a changed file's defs are read again. 0: off (at least 0.1 otherwise)
+// The settings file itself is looked at every second. A new port or everyone opens the new server before the old one closes; variables and defs stay. A setting that can't be used is reported and the last settings stay. A file read again also gets its new `use` lines; only main.def itself needs a restart.
 // Example: start the server
 //          → serving on http://localhost:8000 until Ctrl+C (not checked)
 def python start the server
@@ -111,11 +111,12 @@ def python start the server
     WEB.setdefault("folders", [])
     ENGINE = self
     SETTINGS_FILE = WEB["settings_file"] if "settings_file" in WEB else ENGINE.file_path("settings.toml")
-    KINDS = {"port": int, "everyone": bool, "reload": bool, "check_every": (int, float)}
+    KINDS = {"port": int, "everyone": bool, "watch": (int, float)}
+    SETTINGS_EVERY = 1  # seconds between looks at the settings file
 
     def read_settings():
         """main.def's settings, with the settings file's over them."""
-        settings = {"port": WEB.get("port", 8000), "everyone": WEB.get("host") == "0.0.0.0", "reload": False, "check_every": 1}
+        settings = {"port": WEB.get("port", 8000), "everyone": WEB.get("host") == "0.0.0.0", "watch": 0}
         if SETTINGS_FILE is None or not SETTINGS_FILE.is_file():
             return settings
         try:
@@ -130,8 +131,8 @@ def python start the server
                 raise DefException(SETTINGS_FILE.name + ": " + name + " must be " + kind)
         if not 0 <= found.get("port", 0) <= 65535:
             raise DefException(SETTINGS_FILE.name + ": port must be between 0 and 65535")
-        if found.get("check_every", 1) < 0.1:
-            raise DefException(SETTINGS_FILE.name + ": check_every must be at least 0.1 seconds")
+        if found.get("watch", 0) < 0 or 0 < found.get("watch", 0) < 0.1:
+            raise DefException(SETTINGS_FILE.name + ": watch is 0 (off), or at least 0.1 seconds")
         settings.update(found)
         return settings
 
@@ -148,8 +149,8 @@ def python start the server
         host, port = server.server_address[:2]
         return "http://" + ("localhost" if host == "127.0.0.1" else host) + ":" + str(port)
 
-    def reloading(settings):
-        return "  (reloading changed files every " + as_text(settings["check_every"]) + " s)" if settings["reload"] else ""
+    def watching(settings):
+        return "  (watching .def files every " + as_text(settings["watch"]) + " s)" if settings["watch"] else ""
 
     def shown(path):
         for folder in (ENGINE.program_dir, PROJECT):
@@ -173,12 +174,17 @@ def python start the server
             query = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
             query.update({k: v[-1] for k, v in urllib.parse.parse_qs(body.decode("utf-8", "replace")).items()})
             ENGINE._request = {"path": url.path, "query": query, "page": url.path not in WEB.get("apis", {})}
-            # each request has variables of its own: only shared ones outlive it
             try:
-                with ENGINE.own_variables():
-                    self.answer(url)
+                self.answer(url)
             finally:
                 ENGINE._request = None
+
+        def run_for(self, code, file):
+            """Run a page's or an api's words for this request: with variables of the request's
+            own, on top of those of the file the page or api line is in. Only shared ones
+            outlive the request."""
+            with ENGINE.own_variables(file):
+                return ENGINE.run(code)
 
         def answer(self, url):
             try:
@@ -186,7 +192,7 @@ def python start the server
                     return self.api(*WEB["apis"][url.path])
                 if url.path in WEB["pages"]:
                     self.fresh()
-                    page = as_text(ENGINE.run(WEB["pages"][url.path]))
+                    page = as_text(self.run_for(*WEB["pages"][url.path]))
                     return self.send(200, page.encode(), "text/html; charset=utf-8")
                 for folder in WEB["folders"]:
                     file = (folder / urllib.parse.unquote(url.path).lstrip("/")).resolve()
@@ -201,7 +207,7 @@ def python start the server
                     under = [at for at in WEB.get("served", {}) if at == "/" or path == at or path.startswith(at + "/")]
                     if under:
                         self.fresh()
-                        page = as_text(ENGINE.run(WEB["served"][max(under, key=len)]))
+                        page = as_text(self.run_for(*WEB["served"][max(under, key=len)]))
                         return self.send(200, page.encode(), "text/html; charset=utf-8")
                 self.send(404, b"<h1>404</h1><p>page not found</p>", "text/html; charset=utf-8")
             except DefException as error:
@@ -209,23 +215,24 @@ def python start the server
                 self.send(500, message.encode(), "text/html; charset=utf-8")
 
         def fresh(self):
-            """With reload on: read the .def files saved since the last check again."""
+            """With watch on: read the .def files saved since the last look again."""
             settings = STATE["settings"]
-            if not settings["reload"] or time.monotonic() - STATE["checked"] < settings["check_every"]:
+            if not settings["watch"] or time.monotonic() - STATE["checked"] < settings["watch"]:
                 return
             STATE["checked"] = time.monotonic()
             for path in ENGINE.changed_files():
                 try:
                     ENGINE.reload(path)
-                    ENGINE.say("reloaded " + shown(path))
+                    ENGINE.say("read again: " + shown(path))
                 except DefException as error:
-                    ENGINE.say("not reloaded: " + " ".join(map(str, error.args)) + "; the old defs stay")
+                    ENGINE.say("not read again: " + " ".join(map(str, error.args)) + "; the old defs stay")
 
-        def api(self, run, names):
+        def api(self, run, names, file):
             try:
-                if run:
-                    ENGINE.run(run)
-                data = {name: ENGINE.run(name) for name in names}
+                with ENGINE.own_variables(file):
+                    if run:
+                        ENGINE.run(run)
+                    data = {name: ENGINE.run(name) for name in names}
                 self.send(200, json.dumps(data, default=as_text).encode(), "application/json")
             except DefException as error:
                 message = {"error": " ".join(map(str, error.args))}
@@ -268,7 +275,7 @@ def python start the server
 
     def watch():
         """Reads the settings file again when it is saved."""
-        while not STOP.wait(STATE["settings"]["check_every"]):
+        while not STOP.wait(SETTINGS_EVERY):
             now = stamp()
             if now == STATE["stamp"]:
                 continue
@@ -283,14 +290,14 @@ def python start the server
                 WEB["move_to"] = settings
                 WEB["server"].shutdown()  # the loop below moves it
                 continue
-            changes = [name + " is " + json.dumps(settings[name]) for name in ("reload", "check_every") if settings[name] != STATE["settings"][name]]
+            changes = [name + " is " + json.dumps(settings[name]) for name in ("watch",) if settings[name] != STATE["settings"][name]]
             STATE["settings"] = settings
             if changes:
                 ENGINE.say("settings changed: " + ", ".join(changes))
 
     SERVER = open_server(STATE["settings"])
     WEB["server"] = SERVER
-    ENGINE.say("serving on " + where(SERVER) + reloading(STATE["settings"]) + "  (Ctrl+C to stop)")
+    ENGINE.say("serving on " + where(SERVER) + watching(STATE["settings"]) + "  (Ctrl+C to stop)")
     if SETTINGS_FILE is not None:
         threading.Thread(target=watch, daemon=True).start()
     try:
@@ -307,7 +314,7 @@ def python start the server
             WEB["server"] = SERVER
             if address(settings) == (SERVER.server_address[0], settings["port"]):
                 STATE["settings"] = settings
-                ENGINE.say("settings changed: now on " + where(SERVER) + reloading(settings))
+                ENGINE.say("settings changed: now on " + where(SERVER) + watching(settings))
     except KeyboardInterrupt:
         ENGINE.say("server stopped")
     finally:

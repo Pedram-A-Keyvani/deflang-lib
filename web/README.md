@@ -22,6 +22,11 @@ start the server
 
 `/` shows the page, `/api/sum` sends `{"total": 3}`, and it runs until Ctrl+C.
 
+A page, an api or a `serve` line runs on every visit with variables of the visit's
+own, on top of those of the file the line is in. So a file of routes sends the
+shared variables it uses: `use visits from components/home`, then
+`api "/api/visit" sends visits`.
+
 ## The server
 
 `server.def`
@@ -42,15 +47,14 @@ start the server
 
 ## Settings
 
-`settings.toml` in the program's folder, if there is one. It is read again whenever it
-is saved, while the website runs:
+`settings.toml` in the program's folder, if there is one. It is looked at every second
+while the website runs, and read again whenever it is saved:
 
 | Setting | Default | Is |
 |---|---|---|
 | `port` | `8000` | the port (it wins over `server on port`) |
 | `everyone` | `false` | `true`: other computers on the network can connect |
-| `reload` | `false` | `true`: a changed `.def` file's defs are read again when a page is visited |
-| `check_every` | `1` | seconds between checks for changes (at least 0.1) |
+| `watch` | `0` | seconds between looking for changed `.def` files, when a page is visited: a changed file's defs are read again. `0`: off (otherwise at least 0.1) |
 
 ## The script
 
