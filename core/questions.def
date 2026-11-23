@@ -3,17 +3,17 @@
 // Flips the answer of the last question, like an else.
 // Example: is not ?
 //          → yes, after 2 > 3 ?
-def python is not ?
+python is not ?
     self.answer = not self.answer
 
 // Asks a question: the indented lines below run only if A0 is true.
 // Example: 5 > 3 ?
 //          → yes, so the indented lines below run
-def python A0 ?
+python A0 ?
     self.answer = bool(A0)
 
 // Puts the value of A0 in front of A1 and runs it.
 // Example: 2 that > 1
 //          → True
-def python as written A0 that A1
+python[written] A0 that A1
     return self.run(as_code(self.run(A0)) + " " + A1)

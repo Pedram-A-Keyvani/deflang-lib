@@ -8,11 +8,11 @@ use web/server
 use web/script
 ```
 
-It uses the `javascript` library (its `libraries.toml`), which is installed with it.
+It uses the `language` library (its `libraries.toml`), which is installed with it.
 
 ```
 use core
-use html
+use language/html
 use web/server
 page "/" shows "<h1>Hello</h1>"
 api "/api/sum" runs total is 1 + 2 and sends total

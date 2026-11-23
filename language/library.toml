@@ -1,0 +1,3 @@
+name = "language"
+version = "0.1.0"
+description = "Languages for definition bodies, one file each: html, css and javascript"

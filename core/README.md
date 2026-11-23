@@ -11,6 +11,9 @@ a def made earlier wraps the ones made later, so `x is 2 + 3 > 4` is
 `x is ((2 + 3) > 4)`. That is why the files go from the loosest words (loops,
 questions, `is`) to the tightest (math, text).
 
+It also uses the `modifier` library (its `libraries.toml`), installed with it, so
+`use core` gives `shared` and `internal` too.
+
 In the tables, `A0`, `A1`, … are what stands in their place on a line.
 
 ```

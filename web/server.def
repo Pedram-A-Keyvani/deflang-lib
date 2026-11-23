@@ -18,29 +18,29 @@ comment is //
 // Sets the port of the website. Only this computer can connect.
 // Example: server on port 8000
 //          → the website is at http://localhost:8000 (not checked)
-def python server on port A0
+python server on port A0
     self.store("web")["port"] = number(A0)
     self.store("web")["host"] = "127.0.0.1"
 
 // Like `server on port`, but other computers on the network can connect too.
 // Example: server on port 8000 for everyone
 //          → other computers on the network can open it too (not checked)
-def python server on port A0 for everyone
+python server on port A0 for everyone
     self.store("web")["port"] = number(A0)
     self.store("web")["host"] = "0.0.0.0"
 
 // Shows A1 at the address A0. A1 runs again on every visit.
 // Example: page "/hello" shows "<h1>Hi</h1>"
 //          → GET /hello answers <h1>Hi</h1>
-def python as written page A0 shows A1
+python[written] page A0 shows A1
     # with the file of this line: a visit runs A1 with that file's variables
     self.store("web").setdefault("pages", {})[as_text(self.run(A0))] = (A1, self.variables.file)
 
 // The website's assets (css, images, any file) are the files in the folder A0, sent as they are: /style.css is A0/style.css. The folder is relative to the program.
 // Example: the assets are in "files"
 //          → GET /a.txt answers hi, when files/a.txt holds hi
-def python as written the assets are in A0
-def python as written assets are in A0
+python[written] the assets are in A0
+python[written] assets are in A0
     FOLDER = self.file_path(as_text(self.run(A0)))
     if not FOLDER.is_dir():
         raise DefException("no folder " + as_text(A0))
@@ -49,7 +49,7 @@ def python as written assets are in A0
 // The value of `?A0=...` in the address, or of a form field; empty if missing. On a page it is HTML-escaped, so visitors can't inject tags; an api sends it as data.
 // Example: query "name", for GET /hello?name=Sam
 //          → "Sam"
-def python query A0
+python query A0
     import html
     REQUEST = getattr(self, "_request", None) or {}
     VALUE = str(REQUEST.get("query", {}).get(as_text(A0), ""))
@@ -58,32 +58,32 @@ def python query A0
 // At the address A0, runs A1 and sends the values named in A2 (separated by commas) as JSON: variables A1 set, shared variables, or defs. Each request has its own variables, so one visitor's values never reach another. For a single page application.
 // Example: api "/api/sum" runs total is sum of [1, 2] and sends total
 //          → GET /api/sum answers {"total": 3}
-def python as written api A0 runs A1 and sends A2
+python[written] api A0 runs A1 and sends A2
     self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (A1, [name.strip() for name in A2.split(",")], self.variables.file)
 
 // At the address A0, sends the values named in A1 (separated by commas) as JSON: defs (run for this request) or shared variables.
 // Example: api "/api/visits" sends visits
 //          → GET /api/visits answers {"visits": 3}, when visits was 3
-def python as written api A0 sends A1
+python[written] api A0 sends A1
     self.store("web").setdefault("apis", {})[as_text(self.run(A0))] = (None, [name.strip() for name in A1.split(",")], self.variables.file)
 
 // Shows A0 at the address A1 and every address under it (A1 "/" is /, /bmi, /hello, ...) that no api, page or asset answers and that has no file extension. A0 runs again on every visit. For a single page application, so its links and refreshes work; with several, the longest address wins.
 // Example: serve "<p>app</p>" at "/"
 //          → GET /bmi answers <p>app</p>
-def python as written serve A0 at A1
+python[written] serve A0 at A1
     self.store("web").setdefault("served", {})[as_text(self.run(A1)).rstrip("/") or "/"] = (A0, self.variables.file)
 
 // The address of the page being visited, like /hello.
 // Example: requested path, for GET /hello
 //          → "/hello"
-def python requested path
+python requested path
     REQUEST = getattr(self, "_request", None) or {}
     return REQUEST.get("path", "")
 
 // Reads an HTML file and fills in each `{{ ... }}` with the value of the def-lang inside it, HTML-escaped.
 // Example: template "pages/hi.html"
 //          → "<p>2</p>", when pages/hi.html holds <p>{{ 1 + 1 }}</p>
-def python template A0
+python template A0
     import html
     import re
     TEXT = self.file_path(as_text(A0)).read_text()
@@ -96,7 +96,7 @@ def python template A0
 // The settings file itself is looked at every second. A new port or everyone opens the new server before the old one closes; variables and defs stay. A setting that can't be used is reported and the last settings stay. A file read again also gets its new `use` lines; only main.def itself needs a restart.
 // Example: start the server
 //          → serving on http://localhost:8000 until Ctrl+C (not checked)
-def python start the server
+python start the server
     import html
     import http.server
     import json

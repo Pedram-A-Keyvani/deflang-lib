@@ -3,54 +3,54 @@
 // How many letters a text has, or how many items a list has.
 // Example: length of "hello"
 //          → 5
-def python length of A0
-def python count of A0
+python length of A0
+python count of A0
     return len(A0)
 
 // Splits a text into a list of words.
 // Example: words of "a b c"
 //          → ["a", "b", "c"]
-def python words of A0
+python words of A0
     return str(A0).split()
 
 // The text in capital letters.
 // Example: "hi" in upper case
 //          → "HI"
-def python A0 in upper case
+python A0 in upper case
     return str(A0).upper()
 
 // The text in small letters.
 // Example: "HI" in lower case
 //          → "hi"
-def python A0 in lower case
+python A0 in lower case
     return str(A0).lower()
 
 // The first item of a list.
 // Example: first of [3, 9, 2]
 //          → 3
-def python first of A0
+python first of A0
     return A0[0]
 
 // The last item of a list.
 // Example: last of [3, 9, 2]
 //          → 2
-def python last of A0
+python last of A0
     return A0[-1]
 
 // The largest number in a list.
 // Example: largest of [3, 9, 2]
 //          → 9
-def python largest of A0
+python largest of A0
     return max(number(item) for item in A0)
 
 // The smallest number in a list.
 // Example: smallest of [3, 9, 2]
 //          → 2
-def python smallest of A0
+python smallest of A0
     return min(number(item) for item in A0)
 
 // The items of a list as one text, with A1 between them.
 // Example: ["milk", "eggs"] joined with ", "
 //          → "milk, eggs"
-def python A0 joined with A1
+python A0 joined with A1
     return str(A1).join(as_text(item) for item in A0)

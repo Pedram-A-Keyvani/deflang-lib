@@ -5,14 +5,14 @@
 //          → 22.9
 // Example: 22.857 rounded to 2 places
 //          → 22.86
-def python A0 rounded to A1 places
-def python A0 rounded to A1 place
+python A0 rounded to A1 places
+python A0 rounded to A1 place
     return number(round(number(A0), number(A1)))
 
 // Rounds a number to the nearest whole number.
 // Example: 2.6 rounded
 //          → 3
-def python A0 rounded
+python A0 rounded
     return round(number(A0))
 
 
@@ -21,44 +21,44 @@ def python A0 rounded
 // Adds two numbers.
 // Example: 2 plus 3
 //          → 5
-def python A0 + A1
+python A0 + A1
     return number(A0) + number(A1)
 
 // Subtracts A1 from A0.
 // Example: 10 - 4
 //          → 6
-def python A0 - A1
+python A0 - A1
     return number(A0) - number(A1)
 
 // Divides A0 by A1.
 // Example: 7 / 2
 //          → 3.5
-def python A0 / A1
+python A0 / A1
     return number(number(A0) / number(A1))
 
 // Multiplies two numbers.
 // Example: 2 * 3
 //          → 6
-def python A0 * A1
+python A0 * A1
     return number(A0) * number(A1)
 
 // The item at position A1 of a list, counting from 1.
 // Example: [10, 20] # 2
 //          → 20
-def python A0 # A1
-def python A0 No. A1
+python A0 # A1
+python A0 No. A1
     return A0[number(A1) - 1]
 
 // Adds up the numbers in a list.
 // Example: sum of [1, 2, 3]
 //          → 6
-def python sum of A0
+python sum of A0
     return sum(number(item) for item in A0)
 
 // A list of the whole numbers from A0 to A1, counting down if A1 is smaller.
 // Example: numbers from 5 to 1
 //          → [5, 4, 3, 2, 1]
-def python numbers from A0 to A1
+python numbers from A0 to A1
     START, END = number(A0), number(A1)
     STEP = 1 if END >= START else -1
     return list(range(START, END + STEP, STEP))

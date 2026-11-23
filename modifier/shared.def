@@ -1,0 +1,11 @@
+argument is A
+comment is //
+
+// One variable for the whole program: this file, its lines and its defs use it; another
+// file gets it with `use NAME from FILE`. The rest of the line runs as usual.
+// Example: shared visits is 0
+//          → visits is 0
+modifier shared
+    applies to name
+    does
+        self.share(TARGET)

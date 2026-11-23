@@ -1,26 +1,16 @@
 // The core library: `use core` gives the words of def-lang, one topic per file.
 //
 // A line's shape decides first which def wraps the others: fixed words that
-// surround other defs (`api ... runs ... and sends ...`, `is ... ?`), or an `as written`
+// surround other defs (`api ... runs ... and sends ...`, `is ... ?`), or a `written`
 // sentence that starts the line (`all of ... are ...`). Otherwise order matters: a def
 // written earlier is applied last, so it is the outer part of a line. That is why
 // `a is 2 + 3 > 4` means `a is ((2 + 3) > 4)`. See How it runs in the README.
 // So the files are used loosest first.
 
-// ---- languages
-// A word declared with `language NAME` can be written after `def`: the indented
-// body below that def is then written in that language. Only Python is part of the
-// core; other languages are .def files you use where you need them, like
-// `use html`. Declare your own the same way: the Python below
-// `language NAME` gets `BODY` (the def's body text), `VAR` (the argument values)
-// and `fill(BODY, values)` (puts values where A0, A1, ... are), and returns the
-// def's value.
-
-// Python: the body is Python, with `self` (the interpreter) and `a` (the arguments). Built into the interpreter.
-// Example: twice 4, with def python twice A0 whose body is return number(A0) * 2
-//          → 8 (not checked)
-language python
-
+// The modifiers (`shared`, `internal`, from the modifier library) come first: they are
+// no defs, so their place doesn't change how a line is read.
+use modifier/shared
+use modifier/internal
 use loops
 use questions
 use values

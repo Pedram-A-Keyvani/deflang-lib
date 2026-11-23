@@ -4,7 +4,7 @@
 // Text and values next to each other join into one text.
 // Example: "x = " 2
 //          → "x = 2"
-def python A0 "A1" A2
-def python "A0" A1
-def python A0 "A1"
+python A0 "A1" A2
+python "A0" A1
+python A0 "A1"
     return "".join(as_text(value) for value in a)

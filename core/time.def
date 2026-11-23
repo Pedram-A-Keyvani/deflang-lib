@@ -3,27 +3,27 @@
 // The current time, like 14:05.
 // Example: the time
 //          → "14:05", the time now (not checked)
-def python time
+python time
     import datetime
     return datetime.datetime.now().strftime("%H:%M")
 
 // Today's date, like 2026-11-21.
 // Example: today
 //          → "2026-11-21", today's date (not checked)
-def python today
+python today
     import datetime
     return datetime.date.today().isoformat()
 
 // A random whole number from A0 to A1.
 // Example: random number between 1 and 6
 //          → a whole number from 1 to 6, like 4
-def python random number between A0 and A1
+python random number between A0 and A1
     import random
     return random.randint(number(A0), number(A1))
 
 // A random item of a list.
 // Example: random item of ["rock", "paper", "scissors"]
 //          → one of them, like "paper"
-def python random item of A0
+python random item of A0
     import random
     return random.choice(A0)
