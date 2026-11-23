@@ -14,11 +14,11 @@ python[written] A0 each of them is A1
 python[written] one of A0 is A1
     ITEMS = self.run(A0)
     TARGET = self.run(A1)
-    self.variables["them"] = ITEMS
+    self["variables"]["them"] = ITEMS
     for INDEX, ITEM in enumerate(ITEMS):
         if ITEM == TARGET:
-            self.store("core")["it"] = (ITEMS, INDEX)
-            self.variables["it"] = ITEM
+            self["store"]["core"]["it"] = (ITEMS, INDEX)
+            self["variables"]["it"] = ITEM
             return True
     return False
 
@@ -27,8 +27,8 @@ python[written] one of A0 is A1
 //          → cards is [1, 5], when cards was [11, 5], after one of cards is 11
 python it should be converted to A0
 python it becomes A0
-    if self.store("core").get("it") is None:
+    if self["store"]["core"].get("it") is None:
         raise DefException("there is no 'it' yet: ask 'one of ... is ...?' first")
-    ITEMS, INDEX = self.store("core")["it"]
+    ITEMS, INDEX = self["store"]["core"]["it"]
     ITEMS[INDEX] = A0
-    self.variables["it"] = A0
+    self["variables"]["it"] = A0

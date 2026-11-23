@@ -4,7 +4,7 @@
 // Example: x is 2 + 3
 //          → x is 5
 python[written] A0 is A1
-    self.variables[A0] = self.run(A1)
+    self["variables"][A0] = self.run(A1)
 
 // A0 when A1 is true, otherwise A2. Only the part that is chosen runs.
 // Example: 175 / 100 if 175 > 3 otherwise 175
@@ -16,7 +16,7 @@ python[written] A0 if A1 otherwise A2
 // Example: tiny means 0.001
 //          → tiny * 2 is 0.002
 python[written] A0 means A1
-    self.alias(A0, A1)
+    self["aliases"][A0] = A1
 
 // Asks the user for a value and stores it. With a number first, asks for that many and makes a list; a condition after the name checks each one.
 // Example: give 2 numbers less than or equal to 14
@@ -29,13 +29,13 @@ python[written] give A0
         for i in range(COUNT):
             INPUT = input(f"   {NAME} {i + 1}? ").strip()
             ITEMS.append(INPUT if parse_number(INPUT) is None else parse_number(INPUT))
-        self.variables[NAME] = ITEMS
-        self.variables["them"] = ITEMS
+        self["variables"][NAME] = ITEMS
+        self["variables"]["them"] = ITEMS
         if len(WORDS) == 3:
             self.run(NAME + " each of them is " + WORDS[2])
         return None
     INPUT = input(f"   {A0}? ").strip()
-    self.variables[A0] = INPUT if parse_number(INPUT) is None else parse_number(INPUT)
+    self["variables"][A0] = INPUT if parse_number(INPUT) is None else parse_number(INPUT)
 
 // Prints a value.
 // Example: say "Hello " "Sam"
@@ -47,16 +47,16 @@ python say A0
 // Example: add "eggs" to list
 //          → list is ["milk", "eggs"], when it was ["milk"]
 python[written] add A0 to A1
-    self.variables.setdefault(A1, []).append(self.run(A0))
+    self["variables"].setdefault(A1, []).append(self.run(A0))
 
 // Removes A0 from the list A1; an error if it isn't there.
 // Example: remove "milk" from list
 //          → list is ["eggs"], when it was ["milk", "eggs"]
 python[written] remove A0 from A1
     VALUE = self.run(A0)
-    if VALUE not in self.variables.get(A1, []):
+    if VALUE not in self["variables"].get(A1, []):
         raise DefException(as_text(VALUE) + " is not in " + A1)
-    self.variables[A1].remove(VALUE)
+    self["variables"][A1].remove(VALUE)
 
 // Waits until the user presses Enter A0 times.
 // Example: wait 2 times

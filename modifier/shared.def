@@ -8,4 +8,5 @@ comment is //
 modifier shared
     applies to name
     does
-        self.share(TARGET)
+        here = self["file"]
+        self["files"][here]["names"][TARGET] = (here, TARGET)
