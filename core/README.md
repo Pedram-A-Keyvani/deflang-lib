@@ -212,6 +212,7 @@ What `set` sets (the words as they are written):
 | `comment marker` | the file of a statement's line | the marker: `#` |
 | `argument name` | the file of a statement's line | the name: `X` |
 | `indent` | the file of a statement's line | a whole number: `2` |
+| `scope` | the lines under a statement's line, and the rest of its `does` | files, or libraries: `web/http and io/audio`; where several files define the same phrase, theirs is read |
 
 ```
 // A flag of your own: the definition gets its arguments' words.

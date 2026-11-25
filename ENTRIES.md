@@ -273,8 +273,8 @@ loudly 2 + 3
   `//`.
 - A statement whose `does` gives a value is like an expression line: `loudly 2 + 3`
   gives `5`.
-- The library's `comment is`, `argument is`, `indent`, `error` and `` `LINE` `` are
-  written this way.
+- The library's `comment is`, `argument is`, `indent`, `error`, `` `LINE` `` and
+  `in the scope of` are written this way.
 
 ## 7. Reference
 
@@ -310,6 +310,7 @@ The help of an entry is the comment lines right above it.
 | `comment marker` | a statement | a marker | lines starting with it are comments, to the end of the file (each file starts with `//`) |
 | `argument name` | a statement | a name | arguments are written with it and a number, to the end of the file (each file starts with `A`) |
 | `indent` | a statement | a whole number | that many spaces make one level, to the end of the file (each file starts with 4) |
+| `scope` | a statement | files or libraries, named the way `use` names them: `web/http and io/audio` | where several files define the same phrase, theirs is read: for the rest of the statement's `does`, and the lines under it |
 
 If an entry can't set it, the error says what that entry can set. Outside an entry,
 `set x to 2 + 3` sets the variable `x`.

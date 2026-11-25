@@ -19,6 +19,7 @@ use statement/argument
 use statement/indent
 use statement/error
 use statement/echo
+use statement/scope
 use modifier/shared
 use modifier/internal
 use loops

@@ -23,6 +23,9 @@ modifier verbatim
 //   comment marker  the file of a statement's line: lines starting with A1 are comments
 //   argument name   the file: arguments are written A1 and a number
 //   indent          the file: A1 spaces make one level
+//   scope           the statement's line: the rest of its `does` and the lines under it
+//                   are read in the scope of the files A1 (`web/http and io/audio`): where
+//                   several files define the same phrase, theirs is read
 // Outside an entry's `does`, it sets the variable A0, like `A0 is A1`.
 // Example: set x to 2 + 3
 //          → x is 5
@@ -54,16 +57,21 @@ verbatim python set A0 to A1
     def place(key, value):
         return lambda: self["files"][self["file"]].__setitem__(key, value)
 
+    def scope():
+        for NAME in re.split(r"\s+and\s+", TO):
+            ENTRY["scope"].append(self.scope_of(NAME))
+        self["answer"] = True  # the lines under it run
+
     DEFINITION = ENTRY.get("definition")
     if ENTRY["kind"] == "language":
         CAN = ["body to a value"]
         SETS = {("body", TO): body}
     elif ENTRY["kind"] == "statement":
-        CAN = ["comment marker to X", "argument name to X", "indent to N"]
+        CAN = ["comment marker to X", "argument name to X", "indent to N", "scope to FILES"]
         if WHAT == "indent" and (not TO.isdigit() or int(TO) < 1):
             raise DefException("indent is a whole number, 1 or more: " + TO)
         SETS = {("comment marker", TO): place("comment", TO), ("argument name", TO): place("argument", TO),
-                ("indent", TO): place("indent", int(TO) if TO.isdigit() else TO)}
+                ("indent", TO): place("indent", int(TO) if TO.isdigit() else TO), ("scope", TO): scope}
     elif DEFINITION is not None:
         SETS = {
             ("arguments", "as written"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: text),

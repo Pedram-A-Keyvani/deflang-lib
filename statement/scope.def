@@ -1,0 +1,19 @@
+use language/def
+use core/kernel
+
+// The rest of the line, after the comma, is read in the scope of A0: where several files define the same phrase, the one of A0. A0 is a file, named the way `use` names it (used, if it isn't yet), or a library: all its files. Several: `web/http and io/audio`.
+// Example: in the scope of io/audio, listen on dance
+//          → `listen on dance` is io/audio's, where another file has `listen on A0` too (not checked)
+statement scoped
+    words in the scope of (A0: [^,]+), A1
+    does in def[written]
+        set scope to A0
+        run A1
+
+// The lines under it are read in the scope of A0: where several files define the same phrase, the one of A0. A0 is a file, named the way `use` names it (used, if it isn't yet), or a library: all its files. Several: `web/http and io/audio`.
+// Example: in the scope of web/http
+//          → the lines one level under it read web/http's phrases first (not checked)
+statement scope
+    words in the scope of A0
+    does in def[written]
+        set scope to A0
