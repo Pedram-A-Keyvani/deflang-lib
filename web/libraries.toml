@@ -1,4 +1,0 @@
-# The libraries web uses: installed with it, the same way.
-language = { from = "../language" }
-flag = { from = "../flag" }
-core = { from = "../core" }
