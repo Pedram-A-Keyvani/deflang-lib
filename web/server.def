@@ -121,9 +121,9 @@ def start the server
 
 // ---- answering a request: small phrases, read inside one another
 
-// What the website answers the request with.
+// What the website answers the request with; if that fails, a page with the error's message.
 def the answer to the request
-    the answer at the requested path
+    the answer at the requested path, or if that fails, a server error error
 
 // What the website answers at the address A0: its api, its page, one of its assets, the page served at it or above it, or not found.
 def the answer at A0
@@ -210,6 +210,11 @@ def the file answer A0
 
 def not found
     an answer with status 404, kind "text/html; charset=utf-8" and content "<h1>404</h1><p>page not found</p>"
+
+def a server error A0
+    message is A0 as html
+    page is "<h1>500</h1><pre>" message "</pre>"
+    an answer with status 500, kind "text/html; charset=utf-8" and content page
 
 // ---- settings.toml: how the website runs
 

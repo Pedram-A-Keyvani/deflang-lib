@@ -5,11 +5,10 @@ use core
 // is answered with is up to the line (web/server's is a website). Its state is
 // self["store"]["http"]: "server", "request", and "stop" (set it to stop listening).
 
-// Listens on the host A0 ("127.0.0.1": only this computer; "0.0.0.0": the computers on the network too) and the port A1 (0: a free one), and answers each request with the value of the line A2: an answer (`an answer with status …`), or a text, an HTML page. A2 runs for each request with variables of its own, on top of those of the file of this line; an error in it answers 500. Between requests, it runs the lines `every second while listening` keeps. It runs until Ctrl+C.
+// Listens on the host A0 ("127.0.0.1": only this computer; "0.0.0.0": the computers on the network too) and the port A1 (0: a free one), and answers each request with the value of the line A2: an answer (`an answer with status …`). A2 runs for each request with variables of its own, on top of those of the file of this line; if it fails, or gives no answer, the request gets 500 and the message, as plain text. Between requests, it runs the lines `every second while listening` keeps. It runs until Ctrl+C.
 // Example: listen on "127.0.0.1" and 8000, answering with "<p>hi</p>"
 //          → every address answers <p>hi</p> (not checked)
 python[written] listen on A0 and A1, answering with A2
-    import html
     import http.server
     import threading
     import time
@@ -34,12 +33,11 @@ python[written] listen on A0 and A1, answering with A2
             HTTP["request"] = {"path": url.path, "query": query}
             try:
                 with ENGINE.own_variables(FILE):
-                    answer = ENGINE.run(ANSWER)
-            except DefException as error:
-                answer = (500, "text/html; charset=utf-8", "<h1>500</h1><pre>" + html.escape(" ".join(map(str, error.args))) + "</pre>")
+                    status, kind, content = ENGINE.run(ANSWER)
+            except (DefException, TypeError, ValueError) as error:
+                status, kind, content = 500, "text/plain; charset=utf-8", " ".join(map(str, error.args))
             finally:
                 HTTP["request"] = None
-            status, kind, content = answer if isinstance(answer, tuple) else (200, "text/html; charset=utf-8", answer)
             data = content if isinstance(content, bytes) else as_text(content).encode()
             self.send_response(status)
             self.send_header("Content-Type", kind)
@@ -130,9 +128,10 @@ python the query
 // Where it listens, as a browser opens it: http://localhost:8000.
 // Example: the address it listens on
 //          → "http://localhost:8000", while it listens on port 8000 (not checked)
-python the address it listens on
-    HOST, PORT = self["store"]["http"]["server"].server_address[:2]
-    return "http://" + ("localhost" if HOST == "127.0.0.1" else HOST) + ":" + str(PORT)
+def the address it listens on
+    host is the host it listens on
+    name is "localhost" if host = "127.0.0.1" otherwise host
+    "http://" name ":" the port it listens on
 
 // The host it listens on: "127.0.0.1", or "0.0.0.0".
 // Example: the host it listens on
