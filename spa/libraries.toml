@@ -1,0 +1,2 @@
+# The libraries spa uses: installed with it, the same way.
+language = { from = "../language" }

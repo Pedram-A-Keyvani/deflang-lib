@@ -1,0 +1,61 @@
+use flag/written
+
+// ---- lists: their items, and changing them
+
+// How many items a list has.
+// Example: count of [3, 9, 2]
+//          → 3
+python count of A0
+    return len(A0)
+
+// The first item of a list.
+// Example: first of [3, 9, 2]
+//          → 3
+python first of A0
+    return A0[0]
+
+// The last item of a list.
+// Example: last of [3, 9, 2]
+//          → 2
+python last of A0
+    return A0[-1]
+
+// The largest number in a list.
+// Example: largest of [3, 9, 2]
+//          → 9
+python largest of A0
+    return max(number(item) for item in A0)
+
+// The smallest number in a list.
+// Example: smallest of [3, 9, 2]
+//          → 2
+python smallest of A0
+    return min(number(item) for item in A0)
+
+// The items of a list as one text, with A1 between them.
+// Example: ["milk", "eggs"] joined with ", "
+//          → "milk, eggs"
+python A0 joined with A1
+    return str(A1).join(as_text(item) for item in A0)
+
+// The item at position A1 of a list, counting from 1.
+// Example: [10, 20] # 2
+//          → 20
+python A0 # A1
+python A0 No. A1
+    return A0[number(A1) - 1]
+
+// Adds A0 to the end of the list A1, making the list if needed.
+// Example: add "eggs" to list
+//          → list is ["milk", "eggs"], when it was ["milk"]
+python[written] add A0 to A1
+    self["variables"].setdefault(A1, []).append(self.run(A0))
+
+// Removes A0 from the list A1; an error if it isn't there.
+// Example: remove "milk" from list
+//          → list is ["eggs"], when it was ["milk", "eggs"]
+python[written] remove A0 from A1
+    VALUE = self.run(A0)
+    if VALUE not in self["variables"].get(A1, []):
+        raise DefException(as_text(VALUE) + " is not in " + A1)
+    self["variables"][A1].remove(VALUE)

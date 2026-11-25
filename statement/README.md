@@ -1,7 +1,7 @@
 # statement
 
 Statements: whole lines the reader knows. One file each, written in def with the words
-of `core/kernel.def`. `use core` uses them all.
+of the `entry` library. `use core` uses them all.
 
 | File | Use | Gives |
 |---|---|---|

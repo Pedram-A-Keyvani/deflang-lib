@@ -1,90 +1,88 @@
 use core
 use flag/later
-use language/html
+use formats
 use http
 
-// A small web server, for any website. What a page shows is up to your defs; how a
-// request comes and goes is web/http's.
+// The server: which address answers what, and on which port. What answers is up to
+// the libraries that use it (website: pages; api: data) or the program: each line it
+// is given gives an answer for the request, or nothing when it isn't for it. Where
+// its settings come from (a file, memory, ...) is up to the program.
 //
 //   server on port 8000
-//   page "/" shows "<h1>Hello</h1>"
-//   page "/about" shows about page               // a def, run on every visit
-//   api "/api/sum" runs total is 1 + 2 and sends total
-//   the assets are in "static"                   // css, images, as they are
-//   serve site page at "/"                       // "/" and every address under it
-//   start the server                             // runs until Ctrl+C
-//
-// Inside a page:  query "name"  is ?name=... from the address or a form,
-// and  template "file.html"  fills in {{ def-lang }} parts of a file.
-
-// ---- the website: what the lines below say, and each request reads
+//   answer requests with my answer                   // first: an answer, or nothing
+//   answer the other requests with my fallback       // when no line above answers
+//   start the server                                 // runs until Ctrl+C
 
 shared host is "127.0.0.1"
 shared port is 8000
-shared pages is a new table
-shared apis is a new table
-shared sent is a new table
-shared served is a new table
-shared folders is []
-shared settingsfile is "settings.toml"
-shared current is a new table
-shared stamp is 0
+shared answerers is []
+shared fallbacks is []
+shared fordata is False
 
-// Sets the port of the website. Only this computer can connect.
+// Sets the port of the server. Only this computer can connect. While it listens, it moves there: the new port opens before the old one closes.
 // Example: server on port 8000
-//          → the website is at http://localhost:8000 (not checked)
+//          → the server is at http://localhost:8000 (not checked)
 def server on port A0
-    port is A0
-    host is "127.0.0.1"
+    serve at "127.0.0.1" and A0
 
 // Like `server on port`, but other computers on the network can connect too.
 // Example: server on port 8000 for everyone
 //          → other computers on the network can open it too (not checked)
 def server on port A0 for everyone
-    port is A0
-    host is "0.0.0.0"
+    serve at "0.0.0.0" and A0
 
-// Shows A1 at the address A0. A1 runs again on every visit.
-// Example: page "/hello" shows "<h1>Hi</h1>"
-//          → GET /hello answers <h1>Hi</h1>
-def[later] page A0 shows A1
-    put A1 in pages at the value of A0
+def serve at A0 and A1
+    either A1 < 0 or A1 > 65535 ?
+        fail with "port must be between 0 and 65535"
+    still is both A0 = host and A1 = port
+    host is A0
+    port is A1
+    both it is listening and not still ?
+        in the scope of http, listen again on host and port
 
-// The website's assets (css, images, any file) are the files in the folder A0, sent as they are: /style.css is A0/style.css. The folder is relative to the program.
-// Example: the assets are in "files"
-//          → GET /a.txt answers hi, when files/a.txt holds hi
-def the assets are in A0
-def assets are in A0
-    add the folder A0 to folders
+// The requests a line answers: A0 gives an answer (`an answer with status …`), or nothing when the request isn't for it. Lines added earlier are asked first.
+// Example: answer requests with the page answer to the request
+//          → every request is asked to it (not checked)
+def[later] answer requests with A0
+    add A0 to answerers
 
-// The value of `?A0=...` in the address, or of a form field; empty if missing. On a page it is HTML-escaped, so visitors can't inject tags; an api sends it as data.
+// Like `answer requests with`, for the requests none of those lines answers: assets, pages served under an address, ...
+// Example: answer the other requests with the asset answer to the request
+//          → a request no other line answers is asked to it (not checked)
+def[later] answer the other requests with A0
+    add A0 to fallbacks
+
+// Starts the server. It runs until Ctrl+C.
+// Example: start the server
+//          → serving on http://localhost:8000 until Ctrl+C (not checked)
+def start the server
+    in the scope of http, listen on host and port, answering with the answer to the request
+
+// What the server answers the request with: the first line that answers it, or not found; if that fails, the error's message.
+def the answer to the request
+    fordata is False
+    the first answer, or if that fails, an error answer error
+
+def the first answer
+    answer is the first value of answerers
+    not answer ?
+        answer is the first value of fallbacks
+    not answer ?
+        answer is not found
+    answer
+
+// The value of `?A0=...` in the address, or of a form field; empty if missing. For a page it is HTML-escaped, so visitors can't inject tags; for data, it is as it is.
 // Example: query "name", for GET /hello?name=Sam
 //          → "Sam"
 def query A0
     value is the query at A0 if the query has A0 otherwise ""
-    value if apis has the requested path otherwise value as html
+    value if fordata otherwise value as html
 
-// At the address A0, runs A1 and sends the values named in A2 (separated by commas) as JSON: variables A1 set, shared variables, or defs. Each request has its own variables, so one visitor's values never reach another. For a single page application.
-// Example: api "/api/sum" runs total is sum of [1, 2] and sends total
-//          → GET /api/sum answers {"total": 3}
-def[later] api A0 runs A1 and sends A2
-    address is the value of A0
-    put A1 in apis at address
-    put A2 in sent at address
-
-// At the address A0, sends the values named in A1 (separated by commas) as JSON: defs (run for this request) or shared variables.
-// Example: api "/api/visits" sends visits
-//          → GET /api/visits answers {"visits": 3}, when visits was 3
-def[later] api A0 sends A1
-    address is the value of A0
-    put "" in apis at address
-    put A1 in sent at address
-
-// Shows A0 at the address A1 and every address under it (A1 "/" is /, /bmi, /hello, ...) that no api, page or asset answers and that has no file extension. A0 runs again on every visit. For a single page application, so its links and refreshes work; with several, the longest address wins.
-// Example: serve "<p>app</p>" at "/"
-//          → GET /bmi answers <p>app</p>
-def[later] serve A0 at A1
-    put A0 in served at the address the value of A1
+// The request is for data, not a page: `query` gives its values as they are. An api says it before its line runs.
+// Example: the request is for data
+//          → query gives "<b>" as it is (not checked)
+def the request is for data
+    fordata is True
 
 // The address of the page being visited, like /hello.
 // Example: requested path, for GET /hello
@@ -92,216 +90,15 @@ def[later] serve A0 at A1
 def requested path
     the requested path
 
-// Reads an HTML file and fills in each `{{ ... }}` with the value of the def-lang inside it, HTML-escaped.
-// Example: template "pages/hi.html"
-//          → "<p>2</p>", when pages/hi.html holds <p>{{ 1 + 1 }}</p>
-def[written] template A0
-    filling is the text of file A0
-    filling with each {{ }} filled in
-
-// Where the settings are, instead of settings.toml: a file, relative to the program ("": none).
-// Example: the settings are in "website.toml"
-//          → start the server reads website.toml (not checked)
-def the settings are in A0
-    settingsfile is A0
-
-// Starts the website. It runs until Ctrl+C. How it runs comes from settings.toml in the program's folder, if there is one, and the file is read again whenever it is saved, while the website runs:
-//   port = 8000          the port (it wins over `server on port`)
-//   everyone = false     true: other computers on the network can connect
-//   watch = 0            seconds between looking for changed .def files, when a page is visited; a changed file's defs are read again. 0: off (at least 0.1 otherwise)
-// The settings file itself is looked at every second. A new port or everyone opens the new server before the old one closes; variables and defs stay. A setting that can't be used is reported and the last settings stay. A file read again also gets its new `use` lines; only main.def itself needs a restart.
-// Example: start the server
-//          → serving on http://localhost:8000 until Ctrl+C (not checked)
-def start the server
-    current is the settings
-    stamp is the time of file settingsfile
-    say what it watches
-    every second while listening : look at the settings again
-    in the scope of http, listen on the host of current and the port of current, answering with the answer to the request
-
-// ---- answering a request: small phrases, read inside one another
-
-// What the website answers the request with; if that fails, a page with the error's message.
-def the answer to the request
-    the answer at the requested path, or if that fails, a server error error
-
-// What the website answers at the address A0: its api, its page, one of its assets, the page served at it or above it, or not found.
-def the answer at A0
-    the api answer at A0 if apis has A0 otherwise the page answer at A0
-
-// The api at A0: the values it sends, as JSON; an error's message, if it fails.
-def the api answer at A0
-    line is apis at A0
-    names is sent at A0
-    the json answer for names after line, or if that fails, a json error error
-
-def the json answer for A0 after A1
-    values is the values of A0 after A1
-    a json answer values
-
-def the page answer at A0
-    page is pages at A0
-    the html answer to page if page otherwise the asset answer at A0
-
-def the asset answer at A0
-    found is the file A0 in folders
-    the file answer found if found otherwise the served answer at A0
-
-// The page served at the address A0 or above it, unless A0 names a file (with a dot).
-def the served answer at A0
-    address is the address A0
-    page is served at the served address for address
-    file is A0 names a file
-    the html answer to page if both page and not file otherwise not found
-
-// The longest address a page is served at, at A0 or above it; "" if there is none.
-def the served address for A0
-    best is ""
-    for each place in names of served : best is the longer of best and place if place covers A0 otherwise best
-    best
-
-def the longer of A0 and A1
-    A1 if length of A1 > length of A0 otherwise A0
-
-// True if the address A0 is A1, or above it: "/" covers every address, /admin covers /admin/users.
-def A0 covers A1
-    root is A0 = "/"
-    same is A0 = A1
-    prefix is A0 "/"
-    under is A1 starts with prefix
-    near is either root or same
-    either near or under
-
-// True if the address A0 ends with a file's name, with a dot: /style.css.
-def A0 names a file
-    parts is A0 split by "/"
-    part is last of parts
-    part contains "."
-
 // The address A0 without "/" at its end; "/" stays "/".
+// Example: the address "/admin/"
+//          → "/admin"
 def the address A0
     cut is A0 without "/" at the end
     cut if cut otherwise "/"
 
-// A page, from the line that makes it: run for this request, after the changed .def files are read again (with watch on).
-def the html answer to A0
-    watch is current at "watch"
-    read the changed files again every watch seconds
-    content is the value of A0
-    an html answer content
-
-def an html answer A0
-    an answer with status 200, kind "text/html; charset=utf-8" and content A0
-
-def a json answer A0
-    data is A0 as json
-    an answer with status 200, kind "application/json" and content data
-
-def a json error A0
-    body is a new table
-    put A0 in body at "error"
-    data is body as json
-    an answer with status 400, kind "application/json" and content data
-
-def the file answer A0
-    type is the kind of file A0
-    bytes is the bytes of file A0
-    an answer with status 200, kind type and content bytes
-
 def not found
-    an answer with status 404, kind "text/html; charset=utf-8" and content "<h1>404</h1><p>page not found</p>"
+    an answer with status 404, kind "text/plain; charset=utf-8" and content "not found"
 
-def a server error A0
-    message is A0 as html
-    page is "<h1>500</h1><pre>" message "</pre>"
-    an answer with status 500, kind "text/html; charset=utf-8" and content page
-
-// ---- settings.toml: how the website runs
-
-// How the website runs: the program's settings, with settings.toml's over them.
-def the settings
-    the settings in the file over the settings of the program
-
-// The program's settings: the port and host of `server on port`, and no watching.
-def the settings of the program
-    settings is a new table
-    put port in settings at "port"
-    put host in settings at "host"
-    put 0 in settings at "watch"
-    settings
-
-// The settings in settings.toml, checked; none without the file. An error says which setting can't be used.
-def the settings in the file
-    found is a new table
-    settingsfile is a file ?
-        found is the table in file settingsfile
-    for each name in names of found : check the setting name in found
-    everyone is found at "everyone"
-    found has "everyone" ?
-        put the host for everyone in found at "host"
-    found
-
-// An error unless the setting A0 in the table A1 is one there is, of its kind.
-def check the setting A0 in A1
-    value is A1 at A0
-    not ["port", "everyone", "watch"] contains A0 ?
-        fail with "settings.toml: unknown setting '" A0 "' (the settings are port, everyone, watch)"
-    A0 = "port" ?
-        not value is a whole number ?
-            fail with "settings.toml: port must be a whole number"
-        either value < 0 or value > 65535 ?
-            fail with "settings.toml: port must be between 0 and 65535"
-    A0 = "everyone" ?
-        not value is true or false ?
-            fail with "settings.toml: everyone must be true or false"
-    A0 = "watch" ?
-        not value is a number ?
-            fail with "settings.toml: watch must be a number"
-        either value < 0 or both value > 0 and value < 0.1 ?
-            fail with "settings.toml: watch is 0 (off), or at least 0.1 seconds"
-
-def the host for A0
-    "0.0.0.0" if A0 otherwise "127.0.0.1"
-
-def the host of A0
-    A0 at "host"
-
-def the port of A0
-    A0 at "port"
-
-// settings.toml again, when it was saved since it was read: a new port or everyone moves the server; a setting that can't be used keeps the last ones.
-def look at the settings again
-    saved is the time of file settingsfile
-    not saved = stamp ?
-        stamp is saved
-        take the new settings, or if that fails, say "settings not changed: " error "; the last settings stay"
-
-def take the new settings
-    new is the settings
-    there is the host of new = the host it listens on
-    here is the port of new = the port it listens on
-    kept is the port of new = the port of current
-    still is either here or kept
-    moving is not both there and still
-    moving ?
-        move to new
-    is not ?
-        say the changes from current to new
-        current is new
-
-def move to A0
-    in the scope of http, listen again on the host of A0 and the port of A0
-    current is A0
-    say "settings changed: now on " the address it listens on
-    say what it watches
-
-def say the changes from A0 to A1
-    old is A0 at "watch"
-    new is A1 at "watch"
-    not old = new ?
-        say "settings changed: watch is " new
-
-def say what it watches
-    watch is current at "watch"
-    watch > 0 ?
-        say "watching .def files every " watch " s"
+def an error answer A0
+    an answer with status 500, kind "text/plain; charset=utf-8" and content A0

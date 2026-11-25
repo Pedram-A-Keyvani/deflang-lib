@@ -7,5 +7,5 @@ flag written
     does in def
         set arguments to as written
 
-// the words its `does` says: core's kernel.def, which uses this flag itself
-use core/kernel
+// the words its `does` says: the entry library, which uses this flag itself
+use entry

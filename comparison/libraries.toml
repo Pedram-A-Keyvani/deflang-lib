@@ -1,0 +1,3 @@
+# The libraries comparison uses: installed with it, the same way.
+language = { from = "../language" }
+values = { from = "../values" }

@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // Stops the program with the message A0. `def-lang check` reads on.
 // Example: error the file is missing

@@ -1,0 +1,3 @@
+name = "lists"
+version = "0.1.0"
+description = "Lists: count, first, last, largest, smallest, joined with, #, add, remove"

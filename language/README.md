@@ -40,9 +40,7 @@ say 4 doubled
   `<style def="hello style"></style>`.
 - An `html`, `javascript` or `css` def's result goes in as it is (it is your own
   code); any other value is escaped.
-- `A0 with each {{ }} filled in`: the HTML text `A0` with each `{{ … }}` filled in
-  with the value of the def-lang inside it, escaped, run where the line runs (the web
-  server's `template "file.html"` is this, for a file).
+- HTML templates, files with `{{ def-lang }}` in them, are the `template` library.
 
 ```
 use core

@@ -1,0 +1,2 @@
+# The libraries errors uses: installed with it, the same way.
+flag = { from = "../flag" }

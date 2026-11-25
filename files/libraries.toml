@@ -1,0 +1,3 @@
+# The libraries files uses: installed with it, the same way.
+flag = { from = "../flag" }
+time = { from = "../time" }

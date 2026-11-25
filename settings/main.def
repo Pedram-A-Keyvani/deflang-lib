@@ -1,0 +1,20 @@
+// ---- settings: named values a program takes, wherever they come from (a file, memory, ...)
+
+// The table A0, when each of its names is one of the table A1, and each value is of the kind A1 gives that name: "a whole number", "a number", "true or false" or "a text". Otherwise an error says which: a name it doesn't take, or a value of another kind.
+// Example: settings checked against kinds
+//          → error: port must be a whole number, when settings was a new table, after put "80" in settings at "port", when kinds was a new table, after put "a whole number" in kinds at "port"
+python A0 checked against A1
+    KINDS = {
+        "a whole number": lambda value: isinstance(value, int) and not isinstance(value, bool),
+        "a number": lambda value: isinstance(value, (int, float)) and not isinstance(value, bool),
+        "true or false": lambda value: isinstance(value, bool),
+        "a text": lambda value: isinstance(value, str),
+    }
+    for NAME, VALUE in A0.items():
+        if NAME not in A1:
+            raise DefException("unknown setting '" + NAME + "' (the settings are " + ", ".join(A1) + ")")
+        if A1[NAME] not in KINDS:
+            raise DefException("a setting is " + ", ".join(KINDS) + ", not " + as_text(A1[NAME]))
+        if not KINDS[A1[NAME]](VALUE):
+            raise DefException(NAME + " must be " + A1[NAME])
+    return A0

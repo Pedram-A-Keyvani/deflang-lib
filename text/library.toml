@@ -1,0 +1,3 @@
+name = "text"
+version = "0.1.0"
+description = "Text: length, words, upper and lower case, starts with, split by, without ... at the end"

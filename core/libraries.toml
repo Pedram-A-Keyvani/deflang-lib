@@ -1,5 +1,25 @@
 # The libraries core uses: installed with it, the same way.
 language = { from = "../language" }
+entry = { from = "../entry" }
 flag = { from = "../flag" }
 statement = { from = "../statement" }
 modifier = { from = "../modifier" }
+loops = { from = "../loops" }
+questions = { from = "../questions" }
+errors = { from = "../errors" }
+values = { from = "../values" }
+checks = { from = "../checks" }
+console = { from = "../console" }
+joined = { from = "../joined" }
+logic = { from = "../logic" }
+comparison = { from = "../comparison" }
+kinds = { from = "../kinds" }
+tables = { from = "../tables" }
+math = { from = "../math" }
+text = { from = "../text" }
+lists = { from = "../lists" }
+formats = { from = "../formats" }
+time = { from = "../time" }
+random = { from = "../random" }
+number-words = { from = "../number-words" }
+phrases = { from = "../phrases" }

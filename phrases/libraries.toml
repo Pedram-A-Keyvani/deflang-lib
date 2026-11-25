@@ -1,0 +1,9 @@
+# The libraries phrases uses: installed with it, the same way.
+language = { from = "../language" }
+flag = { from = "../flag" }
+questions = { from = "../questions" }
+checks = { from = "../checks" }
+values = { from = "../values" }
+console = { from = "../console" }
+comparison = { from = "../comparison" }
+lists = { from = "../lists" }

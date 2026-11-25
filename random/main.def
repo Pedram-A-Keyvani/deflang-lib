@@ -1,0 +1,15 @@
+// ---- random: chance
+
+// A random whole number from A0 to A1.
+// Example: random number between 1 and 6
+//          → a whole number from 1 to 6, like 4
+python random number between A0 and A1
+    import random
+    return random.randint(number(A0), number(A1))
+
+// A random item of a list.
+// Example: random item of ["rock", "paper", "scissors"]
+//          → one of them, like "paper"
+python random item of A0
+    import random
+    return random.choice(A0)

@@ -1,0 +1,3 @@
+name = "program"
+version = "0.1.0"
+description = "The program's own .def files: read the changed ones again"

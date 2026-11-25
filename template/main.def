@@ -1,0 +1,19 @@
+use core
+use files
+
+// ---- HTML templates: files with {{ def-lang }} in them
+
+// Reads an HTML file and fills in each `{{ ... }}` with the value of the def-lang inside it, HTML-escaped.
+// Example: template "pages/hi.html"
+//          → "<p>2</p>", when pages/hi.html holds <p>{{ 1 + 1 }}</p>
+def[written] template A0
+    filling is the text of file A0
+    filling with each {{ }} filled in
+
+// The HTML text A0 with each {{ … }} filled in with the value of the def-lang inside it, escaped. The def-lang runs where this line runs.
+// Example: "<p>{{ 1 + 1 }}</p>" with each {{ }} filled in
+//          → "<p>2</p>"
+python A0 with each {{ }} filled in
+    import html
+    import re
+    return Code(re.sub(r"\{\{(.+?)\}\}", lambda m: html.escape(as_text(self.run(m.group(1).strip()))), as_text(A0)))

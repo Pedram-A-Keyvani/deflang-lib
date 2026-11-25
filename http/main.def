@@ -2,22 +2,21 @@ use core
 
 // The network, for any server: it listens on a host and a port, and answers each
 // request with what a line gives. It knows nothing of pages or apis: what a request
-// is answered with is up to the line (web/server's is a website). Its state is
-// self["store"]["http"]: "server", "request", and "stop" (set it to stop listening).
+// is answered with is up to the line (the server library's: what its users add). Its
+// state is self["store"]["http"]: "server", "request", and "stop" (set it to stop
+// listening). While it waits for requests, the lines time's `every … seconds` keeps run.
 
-// Listens on the host A0 ("127.0.0.1": only this computer; "0.0.0.0": the computers on the network too) and the port A1 (0: a free one), and answers each request with the value of the line A2: an answer (`an answer with status …`). A2 runs for each request with variables of its own, on top of those of the file of this line; if it fails, or gives no answer, the request gets 500 and the message, as plain text. Between requests, it runs the lines `every second while listening` keeps. It runs until Ctrl+C.
+// Listens on the host A0 ("127.0.0.1": only this computer; "0.0.0.0": the computers on the network too) and the port A1 (0: a free one), and answers each request with the value of the line A2: an answer (`an answer with status …`). A2 runs for each request with variables of its own, on top of those of the file of this line; if it fails, or gives no answer, the request gets 500 and the message, as plain text. While it waits, and before each request, the lines time's `every … seconds` keeps run. It runs until Ctrl+C.
 // Example: listen on "127.0.0.1" and 8000, answering with "<p>hi</p>"
 //          → every address answers <p>hi</p> (not checked)
 python[written] listen on A0 and A1, answering with A2
     import http.server
     import threading
-    import time
     import urllib.parse
 
     HTTP = self["store"]["http"]
     ENGINE, FILE, ANSWER = self, self["file"], A2
     STOP = HTTP["stop"] = threading.Event()
-    EVERY = HTTP.setdefault("every", [])
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
@@ -30,6 +29,7 @@ python[written] listen on A0 and A1, answering with A2
             url = urllib.parse.urlsplit(self.path)
             query = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
             query.update({k: v[-1] for k, v in urllib.parse.parse_qs(body.decode("utf-8", "replace")).items()})
+            ENGINE.run("run what is due")  # a file read again, settings saved: before the answer
             HTTP["request"] = {"path": url.path, "query": query}
             try:
                 with ENGINE.own_variables(FILE):
@@ -53,29 +53,20 @@ python[written] listen on A0 and A1, answering with A2
             server = http.server.HTTPServer((host, port), Handler)
         except OSError as error:
             raise DefException("cannot serve on port " + str(port) + ": " + (error.strerror or str(error)))
-        server.timeout = 0.1  # between requests: the lines kept for every second, and `stop`
+        server.timeout = 0.1  # between requests: the lines that are due, and `stop`
         return server
 
     HTTP["open"] = open_server
     HTTP["server"] = open_server(as_text(self.run(A0)), number(self.run(A1)))
     ENGINE.say("serving on " + ENGINE.run("the address it listens on") + "  (Ctrl+C to stop)")
-    LOOKED = time.monotonic()
     try:
         while not STOP.is_set():
             HTTP["server"].handle_request()
-            if time.monotonic() - LOOKED >= 1:
-                LOOKED = time.monotonic()
-                for LINE, WHERE in list(EVERY):
-                    try:
-                        with ENGINE.own_variables(WHERE):
-                            ENGINE.run(LINE)
-                    except DefException as error:
-                        ENGINE.say(" ".join(map(str, error.args)))
+            ENGINE.run("run what is due")
     except KeyboardInterrupt:
         ENGINE.say("server stopped")
     finally:
         HTTP.pop("server").server_close()
-        EVERY.clear()
 
 // Listens on the host A0 and the port A1 instead, while it listens: the new one opens before the old one closes. If it can't, the old one stays, and it is an error that says why.
 // Example: listen again on "127.0.0.1" and 8001
@@ -100,12 +91,6 @@ python[written] listen again on A0 and A1
     else:
         OLD.server_close()
     HTTP["server"] = NEW
-
-// Keeps the line A0, to run about once a second between requests while it listens, with variables of its own, on top of those of the file of this line.
-// Example: every second while listening : look at the settings again
-//          → looks at them once a second (not checked)
-python[written] every second while listening : A0
-    self["store"]["http"].setdefault("every", []).append((A0, self["file"]))
 
 // An answer to a request: its status (200, 404, ...), the kind of its content (text/html, application/json, ...), and the content, a text or bytes.
 // Example: an answer with status 404, kind "text/plain" and content "no"
@@ -132,6 +117,12 @@ def the address it listens on
     host is the host it listens on
     name is "localhost" if host = "127.0.0.1" otherwise host
     "http://" name ":" the port it listens on
+
+// True while it listens.
+// Example: it is listening
+//          → True, while it listens (not checked)
+python it is listening
+    return "server" in self["store"]["http"]
 
 // The host it listens on: "127.0.0.1", or "0.0.0.0".
 // Example: the host it listens on

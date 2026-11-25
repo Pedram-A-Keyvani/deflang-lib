@@ -1,10 +1,9 @@
-// ---- text and lists
+// ---- text
 
-// How many letters a text has, or how many items a list has.
+// How many letters a text has.
 // Example: length of "hello"
 //          → 5
 python length of A0
-python count of A0
     return len(A0)
 
 // Splits a text into a list of words.
@@ -24,50 +23,6 @@ python A0 in upper case
 //          → "hi"
 python A0 in lower case
     return str(A0).lower()
-
-// The first item of a list.
-// Example: first of [3, 9, 2]
-//          → 3
-python first of A0
-    return A0[0]
-
-// The last item of a list.
-// Example: last of [3, 9, 2]
-//          → 2
-python last of A0
-    return A0[-1]
-
-// The largest number in a list.
-// Example: largest of [3, 9, 2]
-//          → 9
-python largest of A0
-    return max(number(item) for item in A0)
-
-// The smallest number in a list.
-// Example: smallest of [3, 9, 2]
-//          → 2
-python smallest of A0
-    return min(number(item) for item in A0)
-
-// The items of a list as one text, with A1 between them.
-// Example: ["milk", "eggs"] joined with ", "
-//          → "milk, eggs"
-python A0 joined with A1
-    return str(A1).join(as_text(item) for item in A0)
-
-// The text A0 as HTML shows it: <, >, & and quotes written so a browser shows them as text.
-// Example: "<b>" as html
-//          → "&lt;b&gt;"
-python A0 as html
-    import html
-    return html.escape(as_text(A0))
-
-// A0 as JSON: a table is an object, a list an array.
-// Example: [1, "a"] as json
-//          → '[1, "a"]'
-python A0 as json
-    import json
-    return json.dumps(A0, default=as_text)
 
 // True if the text A0 starts with A1.
 // Example: "/admin/users" starts with "/admin/"

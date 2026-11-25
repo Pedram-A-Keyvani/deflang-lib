@@ -1,0 +1,3 @@
+name = "loops"
+version = "0.1.0"
+description = "Loops: repeat A0 times, for each A0 in A1, repeat while"

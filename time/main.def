@@ -1,4 +1,6 @@
-// ---- time and chance
+use flag/written
+
+// ---- time: the clock, and lines that run every so often
 
 // The current time, like 14:05.
 // Example: the time
@@ -14,16 +16,33 @@ python today
     import datetime
     return datetime.date.today().isoformat()
 
-// A random whole number from A0 to A1.
-// Example: random number between 1 and 6
-//          → a whole number from 1 to 6, like 4
-python random number between A0 and A1
-    import random
-    return random.randint(number(A0), number(A1))
+// Runs the line A1 every A0 seconds while the program waits for something, like a server for requests, with variables of its own, on top of those of the file of this line. The same line again: its new interval; 0 seconds: no more.
+// Example: every 5 seconds : say "still here"
+//          → says it every 5 seconds while a server waits (not checked)
+python[written] every A0 seconds : A1
+    import time
+    SECONDS = number(self.run(A0))
+    EVERY = self["store"]["time"].setdefault("every", [])
+    KEY = (A1, self["file"])
+    EVERY[:] = [E for E in EVERY if E["key"] != KEY]
+    if SECONDS > 0:
+        ENGINE, HERE, LINE = self, self["file"], A1
 
-// A random item of a list.
-// Example: random item of ["rock", "paper", "scissors"]
-//          → one of them, like "paper"
-python random item of A0
-    import random
-    return random.choice(A0)
+        def RUN():
+            with ENGINE.own_variables(HERE):
+                ENGINE.run(LINE)
+        EVERY.append({"key": KEY, "seconds": SECONDS, "next": time.monotonic() + SECONDS, "run": RUN})
+
+// Runs the lines `every … seconds` keeps that are due. Something that waits says it often: a server, between requests. An error in one is said, and the others run.
+// Example: run what is due
+//          → runs the lines that are due (not checked)
+python run what is due
+    import time
+    NOW = time.monotonic()
+    for E in list(self["store"]["time"].get("every", [])):
+        if NOW >= E["next"]:
+            E["next"] = NOW + E["seconds"]
+            try:
+                E["run"]()
+            except DefException as ERROR:
+                self.say(" ".join(map(str, ERROR.args)))

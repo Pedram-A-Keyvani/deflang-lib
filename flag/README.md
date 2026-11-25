@@ -2,7 +2,7 @@
 
 Flags, written in brackets right after a language: `python[written] …`, several with
 commas: `python[written, regex] …`. One file each, written in def with the words of
-`core/kernel.def`. `use core` uses both.
+the `entry` library. `use core` uses both.
 
 | File | Use | Gives |
 |---|---|---|
@@ -58,5 +58,13 @@ flag later
     does in def
         set arguments to kept
 ```
+
+Its words, for the lines kept for later:
+
+| Words | Does |
+|---|---|
+| `the value of A0` | runs the kept line `A0` in the file it was written in, with variables of its own, and gives its value |
+| `the values of A1 after A0` | runs the kept line `A0`, then gives the values named in `A1` (separated by commas) from the same variables: a table |
+| `the first value of A0` | runs the kept lines of the list `A0` one by one, until one gives a value |
 
 **Writing your own:** [ENTRIES.md](../ENTRIES.md) says what each word of a flag means.

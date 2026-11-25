@@ -19,11 +19,3 @@ language html
 
         FILLED = ENTRY["fill"](ENTRY["template"], [text(value) for value in ENTRY["values"]])
         return Code(re.sub(r"(<(\w+)\b[^>]*?(?<![\w-])def=\"([^\"]+)\"[^>]*>)\s*(</\2\s*>)", include, FILLED))
-
-// The HTML text A0 with each {{ … }} filled in with the value of the def-lang inside it, escaped. The def-lang runs where this line runs.
-// Example: "<p>{{ 1 + 1 }}</p>" with each {{ }} filled in
-//          → "<p>2</p>"
-python A0 with each {{ }} filled in
-    import html
-    import re
-    return Code(re.sub(r"\{\{(.+?)\}\}", lambda m: html.escape(as_text(self.run(m.group(1).strip()))), as_text(A0)))

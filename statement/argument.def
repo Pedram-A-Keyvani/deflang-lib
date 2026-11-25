@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // Arguments are written A0 followed by a number (X0, X1, ...), from here to the end of the file. Each file starts with A.
 // Example: argument is X

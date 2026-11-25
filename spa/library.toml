@@ -1,0 +1,3 @@
+name = "spa"
+version = "0.1.0"
+description = "The browser side of a single page application: views, forms that ask an api, fields the answers fill in"

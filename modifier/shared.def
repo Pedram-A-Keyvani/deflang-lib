@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // One variable for the whole program: this file, its lines and its definitions use it; another file gets it with `use NAME from FILE`. The rest of the line runs as usual.
 // Example: shared visits is 0

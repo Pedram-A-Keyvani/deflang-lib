@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // Prints the line between the backticks, then runs it: the line's value is its value.
 // Example: `2 * 3`

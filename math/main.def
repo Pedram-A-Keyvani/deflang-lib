@@ -1,4 +1,7 @@
-// ---- rounding (looser than math: x / y rounded to 2 places)
+use language/def
+use values
+
+// ---- math: numbers (rounding is looser than math: x / y rounded to 2 places)
 
 // Rounds a number to A1 decimal places.
 // Example: 22.857 rounded to 1 place
@@ -14,9 +17,6 @@ python A0 rounded to A1 place
 //          → 3
 python A0 rounded
     return round(number(A0))
-
-
-// ---- math
 
 // Adds two numbers.
 // Example: 2 plus 3
@@ -42,13 +42,6 @@ python A0 / A1
 python A0 * A1
     return number(A0) * number(A1)
 
-// The item at position A1 of a list, counting from 1.
-// Example: [10, 20] # 2
-//          → 20
-python A0 # A1
-python A0 No. A1
-    return A0[number(A1) - 1]
-
 // Adds up the numbers in a list.
 // Example: sum of [1, 2, 3]
 //          → 6
@@ -62,7 +55,6 @@ python numbers from A0 to A1
     START, END = number(A0), number(A1)
     STEP = 1 if END >= START else -1
     return list(range(START, END + STEP, STEP))
-
 
 // Words for the math symbols.
 // Example: 10 minus 4 divided by 2
@@ -93,5 +85,5 @@ def A0 percent of A1
 // The average of the numbers in a list.
 // Example: average of [2, 4, 9]
 //          → 5
-def average of A0
-    sum of A0 / count of A0
+python average of A0
+    return number(sum(number(item) for item in A0) / len(A0))

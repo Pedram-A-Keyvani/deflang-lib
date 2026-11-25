@@ -1,3 +1,12 @@
+use language/def
+use flag/written
+use questions
+use checks
+use values
+use console
+use comparison
+use lists
+
 // Questions can also start with is, are, does or do:  is a > 5 ?
 // Example: is 5 > 3 ?
 //          → yes

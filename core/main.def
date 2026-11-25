@@ -1,19 +1,21 @@
-// The core library: `use core` gives the words of def-lang, one topic per file.
+// The core library: a bundle of the everyday words. Each topic is a library of its own,
+// and `use core` uses them in this order.
 //
 // A line's shape decides first which def wraps the others: fixed words that
 // surround other defs (`api ... runs ... and sends ...`, `is ... ?`), or a `written`
 // sentence that starts the line (`all of ... are ...`). Otherwise order matters: a def
 // written earlier is applied last, so it is the outer part of a line. That is why
-// `a is 2 + 3 > 4` means `a is ((2 + 3) > 4)`. See How it runs in the README.
-// So the files are used loosest first.
+// `a is 2 + 3 > 4` means `a is ((2 + 3) > 4)`. So the libraries are used loosest first.
 
 // First the kernel's entries: the def language, the words entries are written with
-// (kernel.def), and the flags, statements and modifiers written with them. They make
-// no defs a line is read with, so their place doesn't change how a line is read.
+// (entry), and the flags, statements and modifiers written with them. They make no
+// defs a line is read with (but the kept lines' words), so their place doesn't change
+// how a line is read.
 use language/def
-use kernel
+use entry
 use flag/written
 use flag/regex
+use flag/later
 use statement/comment
 use statement/argument
 use statement/indent
@@ -24,15 +26,20 @@ use modifier/shared
 use modifier/internal
 use loops
 use questions
+use errors
 use values
-use lists
+use checks
+use console
 use joined
 use logic
 use comparison
+use kinds
 use tables
 use math
 use text
+use lists
+use formats
 use time
-use numbers
-use files
+use random
+use number-words
 use phrases

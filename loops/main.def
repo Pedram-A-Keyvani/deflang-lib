@@ -1,3 +1,5 @@
+use flag/written
+
 // ---- loops (the part after ":" runs each time; use a def for several lines)
 
 // Runs the line after the colon A0 times.

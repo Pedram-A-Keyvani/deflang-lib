@@ -1,0 +1,15 @@
+// ---- formats: values written for others to read
+
+// The text A0 as HTML shows it: <, >, & and quotes written so a browser shows them as text.
+// Example: "<b>" as html
+//          → "&lt;b&gt;"
+python A0 as html
+    import html
+    return html.escape(as_text(A0))
+
+// A0 as JSON: a table is an object, a list an array.
+// Example: [1, "a"] as json
+//          → '[1, "a"]'
+python A0 as json
+    import json
+    return json.dumps(A0, default=as_text)

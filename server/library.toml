@@ -1,0 +1,3 @@
+name = "server"
+version = "0.1.0"
+description = "The server: which address answers what, and on which port"

@@ -1,0 +1,18 @@
+// ---- the program's own .def files
+
+// Reads the program's .def files saved since they were read again: their definitions, in place of the old ones. Says which; a file with an error keeps its old definitions. To look every so often: time's `every 5 seconds : read the changed files again`.
+// Example: read the changed files again
+//          → read again: view.def, when view.def was saved (not checked)
+python read the changed files again
+    from pathlib import Path
+    for PATH in self.changed_files():
+        SHOWN = PATH.name
+        for FOLDER in (self["program"], Path.cwd()):
+            if PATH.is_relative_to(FOLDER):
+                SHOWN = str(PATH.relative_to(FOLDER))
+                break
+        try:
+            self.reload(PATH)
+            self.say("read again: " + SHOWN)
+        except DefException as ERROR:
+            self.say("not read again: " + " ".join(map(str, ERROR.args)) + "; the old defs stay")

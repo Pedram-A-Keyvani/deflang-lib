@@ -1,0 +1,3 @@
+name = "errors"
+version = "0.1.0"
+description = "Errors: fail with A0, and A0, or if that fails, A1"

@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // A0 spaces make one level, from here to the end of the file. Each file starts with 4; a tab is always one level.
 // Example: indent 2

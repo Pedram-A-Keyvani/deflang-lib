@@ -1,7 +1,7 @@
 # modifier
 
 Modifiers: words in front of a line that change where something is seen. One file
-each, written in def with the words of `core/kernel.def`:
+each, written in def with the words of the `entry` library:
 
 | File | Use | Gives |
 |---|---|---|

@@ -1,0 +1,3 @@
+name = "checks"
+version = "0.1.0"
+description = "Checks of a list's items: A0 each of them is A1, one of A0 is A1, it becomes A0"

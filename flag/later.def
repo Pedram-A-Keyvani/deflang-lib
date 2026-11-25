@@ -7,5 +7,39 @@ flag later
     does in def
         set arguments to kept
 
-// the words its `does` says: core's kernel.def
-use core/kernel
+// the words its `does` says: the entry library
+use entry
+
+// ---- the words for lines kept for later
+
+// The value of the line A0, kept to run later (the flag `later`): run in the file it was written in, with variables of its own. Any other value is itself.
+// Example: the value of A0, for a line `1 + 2` kept for later
+//          → 3 (not checked)
+python the value of A0
+    if not isinstance(A0, Line):
+        return A0
+    with self.own_variables(A0.file):
+        return self.run(A0)
+
+// Runs the kept line A0 ("": nothing) in the file the kept line A1 was written in, with variables of its own; then gives the values named in A1, separated by commas, from those variables: a table.
+// Example: the values of A1 after A0, for `total, count` after `total is 3`
+//          → a table: total 3, and count (not checked)
+python the values of A1 after A0
+    with self.own_variables(getattr(A1, "file", self["file"])):
+        if as_text(A0).strip():
+            self.run(A0)
+        return {NAME.strip(): self.run(NAME.strip()) for NAME in as_text(A1).split(",")}
+
+// Runs the kept lines of the list A0 one by one, until one gives a value, and gives it; nothing if none does.
+// Example: the first value of answers
+//          → the first value they give (not checked)
+python the first value of A0
+    for LINE in A0:
+        if isinstance(LINE, Line):
+            with self.own_variables(LINE.file):
+                VALUE = self.run(LINE)
+        else:
+            VALUE = self.run(as_text(LINE))
+        if VALUE is not None:
+            return VALUE
+    return None

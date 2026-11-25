@@ -1,0 +1,3 @@
+# The libraries console uses: installed with it, the same way.
+flag = { from = "../flag" }
+checks = { from = "../checks" }

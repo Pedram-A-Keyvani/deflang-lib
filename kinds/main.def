@@ -1,0 +1,19 @@
+// ---- kinds: what kind a value is
+
+// True if A0 is a whole number (not a text with one in it, nor true or false).
+// Example: 8000 is a whole number
+//          → True
+python A0 is a whole number
+    return isinstance(A0, int) and not isinstance(A0, bool)
+
+// True if A0 is a number (not a text with one in it, nor true or false).
+// Example: 0.5 is a number
+//          → True
+python A0 is a number
+    return isinstance(A0, (int, float)) and not isinstance(A0, bool)
+
+// True if A0 is true or false.
+// Example: True is true or false
+//          → True
+python A0 is true or false
+    return isinstance(A0, bool)

@@ -1,0 +1,19 @@
+use flag/written
+
+// ---- errors: stopping, and going on when a line fails
+
+// Runs A0; if it stops with an error, runs A1 instead, with the error's message as `error`.
+// Example: say 1 / 0, or if that fails, say "can't"
+//          → prints can't
+python[written] A0, or if that fails, A1
+    try:
+        return self.run(A0)
+    except DefException as ERROR:
+        self["variables"]["error"] = " ".join(map(str, ERROR.args))
+        return self.run(A1)
+
+// Stops the program with the message A0, a value like any other: "port " port " is taken".
+// Example: fail with "no " 1 + 1
+//          → error: no 2
+python fail with A0
+    raise DefException(as_text(A0))

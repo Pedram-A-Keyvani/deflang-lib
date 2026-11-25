@@ -1,3 +1,5 @@
+use flag/written
+
 // numbers written in words: twenty one, one hundred and five, two thousand twenty six
 // Example: one hundred and five
 //          → 105

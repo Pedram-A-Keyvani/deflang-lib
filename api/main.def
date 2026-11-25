@@ -1,0 +1,57 @@
+use core
+use flag/later
+use server
+
+// An api: data, for programs, like the script of a single page application. Each
+// request has its own variables, so one visitor's values never reach another.
+//
+//   api "/api/sum" runs total is 1 + 2 and sends total
+//   api "/api/visits" sends visits
+
+shared apis is a new table
+shared sent is a new table
+
+// At the address A0, runs A1 and sends the values named in A2 (separated by commas) as JSON: variables A1 set, shared variables, or defs. Each request has its own variables, so one visitor's values never reach another. For a single page application.
+// Example: api "/api/sum" runs total is sum of [1, 2] and sends total
+//          → GET /api/sum answers {"total": 3}
+def[later] api A0 runs A1 and sends A2
+    address is the value of A0
+    put A1 in apis at address
+    put A2 in sent at address
+
+// At the address A0, sends the values named in A1 (separated by commas) as JSON: defs (run for this request) or shared variables.
+// Example: api "/api/visits" sends visits
+//          → GET /api/visits answers {"visits": 3}, when visits was 3
+def[later] api A0 sends A1
+    address is the value of A0
+    put "" in apis at address
+    put A1 in sent at address
+
+// ---- answering a request
+
+// The api at the requested address, if there is one: the values it sends, as JSON; an error's message, if it fails.
+def the api answer to the request
+    address is the requested path
+    apis has address ?
+        the request is for data
+        line is apis at address
+        names is sent at address
+        the json answer for names after line, or if that fails, a json error error
+
+def the json answer for A0 after A1
+    values is the values of A0 after A1
+    a json answer values
+
+def a json answer A0
+    data is A0 as json
+    an answer with status 200, kind "application/json" and content data
+
+def a json error A0
+    body is a new table
+    put A0 in body at "error"
+    data is body as json
+    an answer with status 400, kind "application/json" and content data
+
+// ---- what it answers: asked by the server, in this order
+
+answer requests with the api answer to the request

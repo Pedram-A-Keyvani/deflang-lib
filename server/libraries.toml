@@ -1,0 +1,5 @@
+# The libraries server uses: installed with it, the same way.
+core = { from = "../core" }
+flag = { from = "../flag" }
+formats = { from = "../formats" }
+http = { from = "../http" }

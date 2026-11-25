@@ -1,0 +1,3 @@
+# The libraries checks uses: installed with it, the same way.
+flag = { from = "../flag" }
+statement = { from = "../statement" }

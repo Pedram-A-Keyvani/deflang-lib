@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // A definition only its own file sees: its lines, and its other definitions (also when another file calls them).
 // Example: internal def A0 as meters, in bmi.def

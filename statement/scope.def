@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // The rest of the line, after the comma, is read in the scope of A0: where several files define the same phrase, the one of A0. A0 is a file, named the way `use` names it (used, if it isn't yet), or a library: all its files. Several: `web/http and io/audio`.
 // Example: in the scope of io/audio, listen on dance

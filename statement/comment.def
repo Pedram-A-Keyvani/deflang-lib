@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // Lines starting with A0 are comments, from here to the end of the file. Each file starts with //.
 // Example: comment is #

@@ -1,5 +1,5 @@
 use language/def
-use core/kernel
+use entry
 
 // The pattern is a raw regular expression; ` or ` splits alternatives, and (A0: ...) is an argument.
 // Example: python[regex] (A0: \d+)% or (A0: \d+) percent, whose body returns number(A0) / 100

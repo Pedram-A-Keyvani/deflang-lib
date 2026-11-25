@@ -1,0 +1,113 @@
+use core
+use flag/later
+use files
+use server
+
+// A website: pages, for people. Each address shows a page; assets (css, images, any
+// file) are sent as they are; a page can be served at an address and every address
+// under it, for a single page application.
+//
+//   page "/" shows "<h1>Hello</h1>"
+//   page "/about" shows about page               // a def, run on every visit
+//   the assets are in "static"                   // css, images, as they are
+//   serve site page at "/"                       // "/" and every address under it
+
+shared pages is a new table
+shared served is a new table
+shared folders is []
+
+// Shows A1 at the address A0. A1 runs again on every visit.
+// Example: page "/hello" shows "<h1>Hi</h1>"
+//          → GET /hello answers <h1>Hi</h1>
+def[later] page A0 shows A1
+    put A1 in pages at the value of A0
+
+// The website's assets (css, images, any file) are the files in the folder A0, sent as they are: /style.css is A0/style.css. The folder is relative to the program.
+// Example: the assets are in "files"
+//          → GET /a.txt answers hi, when files/a.txt holds hi
+def the assets are in A0
+def assets are in A0
+    add the folder A0 to folders
+
+// Shows A0 at the address A1 and every address under it (A1 "/" is /, /bmi, /hello, ...) that no api, page or asset answers and that has no file extension. A0 runs again on every visit. For a single page application, so its links and refreshes work; with several, the longest address wins.
+// Example: serve "<p>app</p>" at "/"
+//          → GET /bmi answers <p>app</p>
+def[later] serve A0 at A1
+    put A0 in served at the address the value of A1
+
+// ---- answering a request: small phrases, read inside one another
+
+def the page answer to the request
+    page is pages at the requested path
+    page ?
+        the page answer of page
+
+def the asset answer to the request
+    address is the requested path
+    found is the file address in folders
+    found ?
+        the file answer found
+
+// The page served at the address or above it, unless the address names a file (with a dot).
+def the served answer to the request
+    address is the requested path
+    file is address names a file
+    best is the served address for the address address
+    page is served at best
+    both page and not file ?
+        the page answer of page
+
+// A page, from the line that makes it, run for this request; if that fails, a page with the error's message.
+def the page answer of A0
+    the html answer to A0, or if that fails, an error page error
+
+def the html answer to A0
+    content is the value of A0
+    an html answer content
+
+// The longest address a page is served at, at A0 or above it; "" if there is none.
+def the served address for A0
+    best is ""
+    for each place in names of served : best is the longer of best and place if place covers A0 otherwise best
+    best
+
+def the longer of A0 and A1
+    A1 if length of A1 > length of A0 otherwise A0
+
+// True if the address A0 is A1, or above it: "/" covers every address, /admin covers /admin/users.
+def A0 covers A1
+    root is A0 = "/"
+    same is A0 = A1
+    prefix is A0 "/"
+    under is A1 starts with prefix
+    near is either root or same
+    either near or under
+
+// True if the address A0 ends with a file's name, with a dot: /style.css.
+def A0 names a file
+    parts is A0 split by "/"
+    part is last of parts
+    part contains "."
+
+def an html answer A0
+    an answer with status 200, kind "text/html; charset=utf-8" and content A0
+
+def the file answer A0
+    type is the kind of file A0
+    bytes is the bytes of file A0
+    an answer with status 200, kind type and content bytes
+
+def the not found page
+    an answer with status 404, kind "text/html; charset=utf-8" and content "<h1>404</h1><p>page not found</p>"
+
+def an error page A0
+    message is A0 as html
+    page is "<h1>500</h1><pre>" message "</pre>"
+    an answer with status 500, kind "text/html; charset=utf-8" and content page
+
+// ---- what it answers: asked by the server, in this order
+
+answer requests with the page answer to the request
+answer the other requests with the asset answer to the request
+answer the other requests with the served answer to the request
+answer the other requests with the not found page

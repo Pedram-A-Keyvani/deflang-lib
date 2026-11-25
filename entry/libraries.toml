@@ -1,0 +1,3 @@
+# The libraries entry uses: installed with it, the same way.
+language = { from = "../language" }
+flag = { from = "../flag" }

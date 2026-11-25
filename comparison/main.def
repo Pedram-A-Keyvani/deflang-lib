@@ -1,3 +1,6 @@
+use language/def
+use values
+
 // ---- comparison (longer symbols first, so >= isn't read as >)
 
 // True if the number A0 is greater than or equal to A1.
@@ -33,31 +36,11 @@ python A0 = A1
     except DefException:
         return A0 == A1
 
-
-// True if A0 is a whole number (not a text with one in it, nor true or false).
-// Example: 8000 is a whole number
-//          → True
-python A0 is a whole number
-    return isinstance(A0, int) and not isinstance(A0, bool)
-
-// True if A0 is a number (not a text with one in it, nor true or false).
-// Example: 0.5 is a number
-//          → True
-python A0 is a number
-    return isinstance(A0, (int, float)) and not isinstance(A0, bool)
-
-// True if A0 is true or false.
-// Example: True is true or false
-//          → True
-python A0 is true or false
-    return isinstance(A0, bool)
-
 // True if the text A0 contains A1, or the list A0 has the item A1.
 // Example: "hello" contains "ell"
 //          → True
 python A0 contains A1
     return A1 in A0
-
 
 // Words for the comparison symbols. Longer phrases are replaced first.
 // Example: 5 greater than 3

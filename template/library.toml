@@ -1,0 +1,3 @@
+name = "template"
+version = "0.1.0"
+description = "HTML templates: a file with {{ def-lang }} in it, filled in"
