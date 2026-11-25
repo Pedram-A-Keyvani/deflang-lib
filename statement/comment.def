@@ -1,0 +1,10 @@
+use language/def
+use core/kernel
+
+// Lines starting with A0 are comments, from here to the end of the file. Each file starts with //.
+// Example: comment is #
+//          → lines starting with # are comments (not checked)
+statement comment
+    words comment is A0
+    does in def[written]
+        set comment marker to A0

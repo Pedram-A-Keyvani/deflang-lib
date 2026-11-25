@@ -1,0 +1,9 @@
+use language/def
+use core/kernel
+
+// The pattern is a raw regular expression; ` or ` splits alternatives, and (A0: ...) is an argument.
+// Example: python[regex] (A0: \d+)% or (A0: \d+) percent, whose body returns number(A0) / 100
+//          → `50 percent` is 0.5 (not checked)
+flag regex
+    does in def
+        set pattern to regex

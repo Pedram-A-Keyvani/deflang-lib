@@ -1,0 +1,3 @@
+name = "statement"
+version = "0.1.0"
+description = "Statements, whole lines the reader knows, one file each: comment, argument, indent, error and echo"

@@ -1,13 +1,10 @@
-argument is A
-comment is //
-
 // CSS: the body is the def's value, as a style sheet, with A0, A1, ... filled in as they are. A value with { } ; or < in it is refused, so it can't break out of its rule or out of the page's <style>. An HTML def puts it in with <style def="name"></style>; in a view, it only styles that view.
 // Example: accent "teal", with css accent A0 whose body is h1 { color: A0; }
 //          → "h1 { color: teal; }" (not checked)
 language css
     editor css
-    does
-        for value in VAR:
+    does in python
+        for value in self["entry"]["values"]:
             if any(sign in as_text(value) for sign in "{};<"):
                 raise DefException("a css value can't have { } ; or < in it: " + as_text(value))
-        return fill(BODY, [as_text(value) for value in VAR])
+        return Code(self["entry"]["body"])

@@ -1,0 +1,11 @@
+use language/def
+use core/kernel
+
+// Prints the line between the backticks, then runs it: the line's value is its value.
+// Example: `2 * 3`
+//          → prints 2 * 3, and gives 6 (not checked)
+statement echo
+    words ` A0 `
+    does in def[written]
+        show A0
+        run A0

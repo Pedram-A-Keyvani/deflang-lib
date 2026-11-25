@@ -1,0 +1,10 @@
+use language/def
+use core/kernel
+
+// A0 spaces make one level, from here to the end of the file. Each file starts with 4; a tab is always one level.
+// Example: indent 2
+//          → a line two spaces in is one level in (not checked)
+statement indent
+    words indent A0
+    does in def[written]
+        set indent to A0

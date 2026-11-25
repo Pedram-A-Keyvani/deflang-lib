@@ -1,11 +1,9 @@
-argument is A
-comment is //
+use language/def
+use core/kernel
 
-// A def only its own file sees: its lines, and its other defs (also when another file
-// calls them).
+// A definition only its own file sees: its lines, and its other definitions (also when another file calls them).
 // Example: internal def A0 as meters, in bmi.def
 //          → `as meters` is unknown outside bmi.def (not checked)
 modifier internal
-    applies to definition
-    does
-        TARGET.internal = True
+    does in def
+        set seen by to the file

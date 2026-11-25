@@ -1,14 +1,22 @@
 # deflang-lib
 
 Libraries for [def-lang](https://github.com/Pedram-A-Keyvani/deflang). The interpreter
-knows no words of its own; these libraries give them.
+knows only `python` and `use`; these libraries give the rest.
 
 | Library | Folder | Gives |
 |---|---|---|
-| `core` | `core/` | values, questions, loops, lists, text, comparison, math |
-| `language` | `language/` | `html …`, `css …`, `javascript …`: bodies in those languages, one file each |
+| `core` | `core/` | values, questions, loops, lists, text, comparison, math; and `kernel.def`, the words entries are written with |
+| `language` | `language/` | `def …`, `html …`, `css …`, `javascript …`: bodies in those languages, one file each |
+| `flag` | `flag/` | `written`, `regex`: flags, one file each |
+| `statement` | `statement/` | `comment is`, `argument is`, `indent`, `error`, `` `…` ``: statements, one file each |
 | `modifier` | `modifier/` | `shared`, `internal`: words in front of a line, one file each |
 | `web` | `web/` | a web server, and the script of a single page application |
+
+`use core` uses `language/def`, the flags, the statements and the modifiers first. The
+flags, statements and modifiers are written in def, with the words of `core/kernel.def`.
+
+**Writing your own:** [ENTRIES.md](ENTRIES.md) says what each word of a language, a
+flag, a modifier and a statement means, with an example of each.
 
 Each library's README lists its words.
 

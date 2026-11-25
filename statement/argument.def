@@ -1,0 +1,10 @@
+use language/def
+use core/kernel
+
+// Arguments are written A0 followed by a number (X0, X1, ...), from here to the end of the file. Each file starts with A.
+// Example: argument is X
+//          → `python X0 times X1` is a definition with two arguments (not checked)
+statement argument
+    words argument is A0
+    does in def[written]
+        set argument name to A0

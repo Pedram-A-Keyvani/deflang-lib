@@ -4,9 +4,31 @@ Languages for definition bodies, one file each:
 
 | File | Use | Gives |
 |---|---|---|
+| `def.def` | `use language/def` | `def …`: a definition whose body is def-lang |
 | `html.def` | `use language/html` | `html …`: a def whose body is HTML |
 | `css.def` | `use language/css` | `css …`: a def whose body is a style sheet |
 | `javascript.def` | `use language/javascript` | `javascript …`: a def whose body is JavaScript for the browser |
+
+## def
+
+- The body's lines run one by one, like a file's lines, with `A0`, `A1`, … put in:
+  their values written as code, or the words as they are written for a definition
+  that keeps its arguments' words (`def[written]`).
+- Its value is the value of the last line that has one.
+- The variables it sets are its own and end with it. A `written` definition has none
+  of its own: it runs where its words were written, with the variables there.
+- Its definitions may have flags, like every language's: `def[written] …`.
+
+```
+use core
+def A0 doubled
+    A0 + A0
+say 4 doubled
+```
+
+```console
+8
+```
 
 ## html
 
@@ -66,3 +88,5 @@ say welcome "Sam"
 ```console
 alert("Sam")
 ```
+
+**Writing your own:** [ENTRIES.md](../ENTRIES.md) says what each word of a language means.

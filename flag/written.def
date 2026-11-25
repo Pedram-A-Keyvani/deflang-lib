@@ -1,0 +1,11 @@
+use language/def
+
+// The definition gets its arguments as they are written, not their values: a name to store under, or code to run later, many times, or maybe not at all.
+// Example: python[written] twice : A0, whose body runs self.run(A0) two times
+//          → `twice : say "hi"` prints hi, hi (not checked)
+flag written
+    does in def
+        set arguments to as written
+
+// the words its `does` says: core's kernel.def, which uses this flag itself
+use core/kernel

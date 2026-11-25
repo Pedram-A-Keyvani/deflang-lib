@@ -1,0 +1,10 @@
+use language/def
+use core/kernel
+
+// Stops the program with the message A0. `def-lang check` reads on.
+// Example: error the file is missing
+//          → stops with "the file is missing" (not checked)
+statement error
+    words error A0
+    does in def[written]
+        stop with A0

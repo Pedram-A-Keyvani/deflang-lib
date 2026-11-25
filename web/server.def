@@ -1,5 +1,4 @@
-argument is A
-comment is //
+use flag/written
 
 // A small web server, for any website. Its bodies are Python: they touch the network,
 // files and the request, which def-lang can't. What a page shows is up to your defs.

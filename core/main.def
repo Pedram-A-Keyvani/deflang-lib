@@ -7,8 +7,18 @@
 // `a is 2 + 3 > 4` means `a is ((2 + 3) > 4)`. See How it runs in the README.
 // So the files are used loosest first.
 
-// The modifiers (`shared`, `internal`, from the modifier library) come first: they are
-// no defs, so their place doesn't change how a line is read.
+// First the kernel's entries: the def language, the words entries are written with
+// (kernel.def), and the flags, statements and modifiers written with them. They make
+// no defs a line is read with, so their place doesn't change how a line is read.
+use language/def
+use kernel
+use flag/written
+use flag/regex
+use statement/comment
+use statement/argument
+use statement/indent
+use statement/error
+use statement/echo
 use modifier/shared
 use modifier/internal
 use loops

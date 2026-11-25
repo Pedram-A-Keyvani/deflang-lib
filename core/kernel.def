@@ -1,0 +1,112 @@
+// The words entries are written with in def: what a `does in def` says. Each acts on
+// what its entry acts on, self["entry"]: a flag on its definition, a modifier on the
+// definition or the name after it, a language on the definition it runs, a statement
+// on the file of its line. Their Python is here, so the entries can be def.
+
+// ---- set A0 to A1: what an entry's `does` sets
+
+// `set` gets its arguments' words: what it sets, and to what. It is made before the flag
+// `written`, whose `does` says `set arguments to as written` itself; so this modifier,
+// in Python, gives `set` its words, and then is gone from the kernel.
+modifier verbatim
+    does in python
+        self["entry"]["definition"].read_argument = lambda text, read: text
+        del self["modifier"]["verbatim"]
+
+// Sets A0 to A1 on what the entry acts on (the words as they are written):
+//   arguments       a definition's: `as written` (it gets their words), or `values`
+//   pattern         a definition's: `regex` (a raw regular expression: ` or ` splits
+//                   alternatives, (A0: ...) is an argument), or `readable`
+//   seen by         a definition's: `the file` (only its own file sees it), or `every file`
+//   name            a modifier's name: `shared` (a shared variable of its file)
+//   body            a language's definition: A1, read for its value (`upper-case`)
+//   comment marker  the file of a statement's line: lines starting with A1 are comments
+//   argument name   the file: arguments are written A1 and a number
+//   indent          the file: A1 spaces make one level
+// Outside an entry's `does`, it sets the variable A0, like `A0 is A1`.
+// Example: set x to 2 + 3
+//          → x is 5
+verbatim python set A0 to A1
+    import re
+    from deflang.definition import read_readable, read_value, seen_everywhere
+    WHAT, TO = " ".join(A0.split()), A1.strip()
+    ENTRY = self["entry"]
+    if ENTRY is None:
+        self["variables"][" ".join(A0.split())] = self.run(TO)
+        return None
+
+    def regex(text, name):
+        restricted = re.compile(r"\(" + re.escape(name) + r"(\d+):\s*")
+        argument = re.compile(r"(?:(?<!\w)|(?<=\\\w))" + re.escape(name) + r"(\d+)(?!\w)")
+        alternatives = []
+        for one in text.split(" or "):
+            one = restricted.sub(lambda m: "(?P<a" + m.group(1) + ">", one.strip())
+            alternatives.append(argument.sub(lambda m: "(?P<a" + m.group(1) + r">[\s\S]+)", one))
+        return alternatives
+
+    def shared():
+        HERE = self["file"]
+        self["files"][HERE]["names"][ENTRY["name"]] = (HERE, ENTRY["name"])
+
+    def body():
+        ENTRY["body"] = self.run(TO)
+
+    def place(key, value):
+        return lambda: self["files"][self["file"]].__setitem__(key, value)
+
+    DEFINITION = ENTRY.get("definition")
+    if ENTRY["kind"] == "language":
+        CAN = ["body to a value"]
+        SETS = {("body", TO): body}
+    elif ENTRY["kind"] == "statement":
+        CAN = ["comment marker to X", "argument name to X", "indent to N"]
+        if WHAT == "indent" and (not TO.isdigit() or int(TO) < 1):
+            raise DefException("indent is a whole number, 1 or more: " + TO)
+        SETS = {("comment marker", TO): place("comment", TO), ("argument name", TO): place("argument", TO),
+                ("indent", TO): place("indent", int(TO) if TO.isdigit() else TO)}
+    elif DEFINITION is not None:
+        SETS = {
+            ("arguments", "as written"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: text),
+            ("arguments", "values"): lambda: setattr(DEFINITION, "read_argument", read_value),
+            ("pattern", "regex"): lambda: setattr(DEFINITION, "read_pattern", regex),
+            ("pattern", "readable"): lambda: setattr(DEFINITION, "read_pattern", read_readable),
+            ("seen by", "the file"): lambda: setattr(DEFINITION, "seen_by", lambda file: file == DEFINITION.file),
+            ("seen by", "every file"): lambda: setattr(DEFINITION, "seen_by", seen_everywhere),
+        }
+        CAN = sorted(w + " to " + t for w, t in SETS)
+    else:
+        SETS = {("name", "shared"): shared}
+        CAN = ["name to shared"]
+    if (WHAT, TO) not in SETS:
+        raise DefException("set " + WHAT + " to " + TO + ": a " + ENTRY["kind"] + " here sets " + ", ".join(CAN))
+    SETS[(WHAT, TO)]()
+
+// ---- languages: words for the body (`set body to upper-case`)
+
+// The body in upper case.
+python upper-case
+    return as_text(self["entry"]["body"]).upper()
+
+// The body in lower case.
+python lower-case
+    return as_text(self["entry"]["body"]).lower()
+
+// ---- statements: what they do. A statement's words come as they are written, so these
+// words keep their arguments' words too.
+
+use flag/written
+
+// Stops the program with the message A0. While `def-lang check` reads, it doesn't stop.
+python[written] stop with A0
+    if self["mode"] == "running":
+        raise DefException(as_text(A0))
+
+// Prints A0, only while the program runs.
+python[written] show A0
+    if self["mode"] == "running":
+        self.say(A0)
+
+// Runs the line A0 where the statement is, and gives its value. While `def-lang check` reads, the line is read as the program's line.
+python[written] run A0
+    if self["mode"] != "reloading":
+        return self.run_lines(as_text(A0))

@@ -1,2 +1,5 @@
 # The libraries core uses: installed with it, the same way.
+language = { from = "../language" }
+flag = { from = "../flag" }
+statement = { from = "../statement" }
 modifier = { from = "../modifier" }
