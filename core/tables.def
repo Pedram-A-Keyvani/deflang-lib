@@ -1,0 +1,37 @@
+// ---- tables: values under names (any text: a word, an address, ...)
+
+// A new table, with nothing in it.
+// Example: a new table
+//          → {}
+python a new table
+    return {}
+
+// Puts A0 in the table A1 under the name A2; what was there under that name goes.
+// Example: put value in pages at address
+//          → pages at address is "home", when pages was a new table, when value was "home", when address was "/"
+python put A0 in A1 at A2
+    A1[as_text(A2)] = A0
+
+// What the table A0 has under the name A1; nothing if it has none.
+// Example: pages at address
+//          → "home", when pages was a new table, after put "home" in pages at "/", when address was "/"
+python A0 at A1
+    return A0.get(as_text(A1))
+
+// True if the table A0 has something under the name A1.
+// Example: pages has address
+//          → True, when pages was a new table, after put "home" in pages at "/", when address was "/"
+python A0 has A1
+    return as_text(A1) in A0
+
+// The names in the table A0, in the order they were put in.
+// Example: names of pages
+//          → ["/"], when pages was a new table, after put "home" in pages at "/"
+python names of A0
+    return list(A0)
+
+// The table A0, with the values of the table A1 where A0 has none.
+// Example: mine over defaults
+//          → {"port": 9000, "watch": 0}, when mine was a new table, after put 9000 in mine at "port", when defaults was a new table, after put 8000 in defaults at "port", after put 0 in defaults at "watch"
+python A0 over A1
+    return {**A1, **A0}

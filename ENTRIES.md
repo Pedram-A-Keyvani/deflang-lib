@@ -300,6 +300,7 @@ The help of an entry is the comment lines right above it.
 | `set …` | For | `to …` | Means |
 |---|---|---|---|
 | `arguments` | a flag, a modifier | `as written` | the definition gets its arguments' words, not their values |
+| | | `kept` | it gets each as a line to run later, with the file it is written in: `the value of A0` runs it there (the flag `later`) |
 | | | `values` | it gets their values (as at first) |
 | `pattern` | a flag, a modifier | `regex` | the definition's pattern is a raw regular expression: ` or ` splits alternatives, `(A0: …)` is an argument |
 | | | `readable` | it is read as words and arguments (as at first) |

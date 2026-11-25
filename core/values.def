@@ -1,5 +1,15 @@
 // ---- values
 
+// Runs A0; if it stops with an error, runs A1 instead, with the error's message as `error`.
+// Example: say 1 / 0, or if that fails, say "can't"
+//          → prints can't
+python[written] A0, or if that fails, A1
+    try:
+        return self.run(A0)
+    except DefException as ERROR:
+        self["variables"]["error"] = " ".join(map(str, ERROR.args))
+        return self.run(A1)
+
 // Stores the value of A1 under the name A0.
 // Example: x is 2 + 3
 //          → x is 5
@@ -36,6 +46,30 @@ python[written] give A0
         return None
     INPUT = input(f"   {A0}? ").strip()
     self["variables"][A0] = INPUT if parse_number(INPUT) is None else parse_number(INPUT)
+
+// Stops the program with the message A0, a value like any other: "port " port " is taken".
+// Example: fail with "no " 1 + 1
+//          → error: no 2
+python fail with A0
+    raise DefException(as_text(A0))
+
+// The value of the line A0, kept to run later (the flag `later`): run in the file it was written in, with variables of its own. Any other value is itself.
+// Example: the value of A0, for a line `1 + 2` kept for later
+//          → 3 (not checked)
+python the value of A0
+    if not isinstance(A0, Line):
+        return A0
+    with self.own_variables(A0.file):
+        return self.run(A0)
+
+// Runs the kept line A0 ("": nothing) in the file the kept line A1 was written in, with variables of its own; then gives the values named in A1, separated by commas, from those variables: a table.
+// Example: the values of A1 after A0, for `total, count` after `total is 3`
+//          → a table: total 3, and count (not checked)
+python the values of A1 after A0
+    with self.own_variables(getattr(A1, "file", self["file"])):
+        if as_text(A0).strip():
+            self.run(A0)
+        return {NAME.strip(): self.run(NAME.strip()) for NAME in as_text(A1).split(",")}
 
 // Prints a value.
 // Example: say "Hello " "Sam"

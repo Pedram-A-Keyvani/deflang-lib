@@ -1,6 +1,6 @@
 # core
 
-The words most programs use: values, questions, loops, lists, text, comparison and math.
+The words most programs use: values, questions, loops, lists, text, comparison, math, tables and files.
 
 ```
 use core
@@ -61,10 +61,14 @@ big on average
 
 | Words | Does | Example |
 |---|---|---|
+| `A0, or if that fails, A1` | Runs A0; if it stops with an error, runs A1 instead, with the error's message as `error`. | `say 1 / 0, or if that fails, say "can't"` |
 | `A0 is A1` | Stores the value of A1 under the name A0. | `x is 2 + 3` |
 | `A0 if A1 otherwise A2` | A0 when A1 is true, otherwise A2. Only the part that is chosen runs. | `175 / 100 if 175 > 3 otherwise 175` |
 | `A0 means A1` | From now on, the words A0 are read as A1. | `tiny means 0.001` |
 | `give A0` | Asks the user for a value and stores it. With a number first, asks for that many and makes a list; a condition after the name checks each one. | `give 2 numbers less than or equal to 14` |
+| `fail with A0` | Stops the program with the message A0, a value like any other: "port " port " is taken". | `fail with "no " 1 + 1` |
+| `the value of A0` | The value of the line A0, kept to run later (the flag `later`): run in the file it was written in, with variables of its own. Any other value is itself. | `the value of A0, for a line `1 + 2` kept for later` |
+| `the values of A1 after A0` | Runs the kept line A0 ("": nothing) in the file the kept line A1 was written in, with variables of its own; then gives the values named in A1, separated by commas, from those variables: a table. | `the values of A1 after A0, for `total, count` after `total is 3`` |
 | `say A0` | Prints a value. | `say "Hello " "Sam"` |
 | `add A0 to A1` | Adds A0 to the end of the list A1, making the list if needed. | `add "eggs" to list` |
 | `remove A0 from A1` | Removes A0 from the list A1; an error if it isn't there. | `remove "milk" from list` |
@@ -109,9 +113,27 @@ big on average
 | `A0 <= A1` | True if the number A0 is less than or equal to A1. | `4 <= 3` |
 | `A0 < A1` | True if the number A0 is less than A1. | `2 is less than 3` |
 | `A0 = A1` | True if A0 and A1 are equal: as numbers when both are numbers, otherwise as text. | `"Paris" = "Paris"` |
+| `A0 is a whole number` | True if A0 is a whole number (not a text with one in it, nor true or false). | `8000 is a whole number` |
+| `A0 is a number` | True if A0 is a number (not a text with one in it, nor true or false). | `0.5 is a number` |
+| `A0 is true or false` | True if A0 is true or false. | `True is true or false` |
 | `A0 contains A1` | True if the text A0 contains A1, or the list A0 has the item A1. | `"hello" contains "ell"` |
 | `is greater than or equal to means >=`<br>`greater than or equal to means >=`<br>`is greater than means >`<br>`greater than means >`<br>`is less than or equal to means <=`<br>`less than or equal to means <=`<br>`is less than means <`<br>`less than means <`<br>`is equal to means =`<br>`equal to means =` | Words for the comparison symbols. Longer phrases are replaced first. | `5 greater than 3` |
 | `A0 is between A1 and A2`<br>`A0 between A1 and A2` | x is between 1 and 10  /  is x between 1 and 10? | `5 is between 1 and 10` |
+
+## Tables
+
+`tables.def`
+
+A table keeps values under names: any text, like a word or an address.
+
+| Words | Does | Example |
+|---|---|---|
+| `a new table` | A new table, with nothing in it. | `a new table` |
+| `put A0 in A1 at A2` | Puts A0 in the table A1 under the name A2; what was there under that name goes. | `put value in pages at address` |
+| `A0 at A1` | What the table A0 has under the name A1; nothing if it has none. | `pages at address` |
+| `A0 has A1` | True if the table A0 has something under the name A1. | `pages has address` |
+| `names of A0` | The names in the table A0, in the order they were put in. | `names of pages` |
+| `A0 over A1` | The table A0, with the values of the table A1 where A0 has none. | `mine over defaults` |
 
 ## Math
 
@@ -149,6 +171,11 @@ big on average
 | `largest of A0` | The largest number in a list. | `largest of [3, 9, 2]` |
 | `smallest of A0` | The smallest number in a list. | `smallest of [3, 9, 2]` |
 | `A0 joined with A1` | The items of a list as one text, with A1 between them. | `["milk", "eggs"] joined with ", "` |
+| `A0 as html` | The text A0 as HTML shows it: <, >, & and quotes written so a browser shows them as text. | `"<b>" as html` |
+| `A0 as json` | A0 as JSON: a table is an object, a list an array. | `[1, "a"] as json` |
+| `A0 starts with A1` | True if the text A0 starts with A1. | `"/admin/users" starts with "/admin/"` |
+| `A0 split by A1` | The parts of the text A0 between each A1, without the spaces around them. | `"visits, time" split by ","` |
+| `A0 without A1 at the end` | The text A0 without A1 at its end, as often as it is there. | `"/admin//" without "/" at the end` |
 
 ## Time and chance
 
@@ -168,6 +195,24 @@ big on average
 | Words | Does | Example |
 |---|---|---|
 | `one, twenty one, one hundred and five, …` | numbers written in words: twenty one, one hundred and five, two thousand twenty six | `one hundred and five` |
+
+## Files
+
+`files.def`
+
+A relative name starts in the program's folder.
+
+| Words | Does | Example |
+|---|---|---|
+| `the folder A0` | The folder A0; an error if there is none. | `the folder "static"` |
+| `the file A0 in A1` | The file at the address A0 in one of the folders A1 (a folder, or a list of them): /style.css is FOLDER/style.css, and a folder is its index.html. Nothing if there is none, and never a file outside them. | `the file "/style.css" in folders` |
+| `A0 is a file` | True if A0 is a file. | `"settings.toml" is a file` |
+| `the time of file A0` | When the file A0 was last saved (a number that grows); nothing if there is no such file. | `the time of file "settings.toml"` |
+| `the text of file A0` | The text in the file A0. | `the text of file "a.txt"` |
+| `the bytes of file A0` | What the file A0 holds, as it is (bytes). | `the bytes of file "a.txt"` |
+| `the kind of file A0` | The kind of the file A0, as the web names it: text/css, image/png, ... | `the kind of file "style.css"` |
+| `the table in file A0` | The table in the TOML file A0. An error says the file's name, and what is wrong. | `the table in file "settings.toml"` |
+| `read the changed files again every A0 seconds` | Reads the program's .def files saved since they were read again, at most once every A0 seconds (0, or nothing: never): their definitions, in place of the old ones. Says which; a file with an error keeps its old definitions. | `read the changed files again every 5 seconds` |
 
 ## Phrases
 

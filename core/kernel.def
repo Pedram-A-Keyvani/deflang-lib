@@ -14,7 +14,8 @@ modifier verbatim
         del self["modifier"]["verbatim"]
 
 // Sets A0 to A1 on what the entry acts on (the words as they are written):
-//   arguments       a definition's: `as written` (it gets their words), or `values`
+//   arguments       a definition's: `as written` (it gets their words), `kept` (lines
+//                   kept to run later, each with its file: `the value of A0`), or `values`
 //   pattern         a definition's: `regex` (a raw regular expression: ` or ` splits
 //                   alternatives, (A0: ...) is an argument), or `readable`
 //   seen by         a definition's: `the file` (only its own file sees it), or `every file`
@@ -75,6 +76,7 @@ verbatim python set A0 to A1
     elif DEFINITION is not None:
         SETS = {
             ("arguments", "as written"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: text),
+            ("arguments", "kept"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: Line(text, self["file"])),
             ("arguments", "values"): lambda: setattr(DEFINITION, "read_argument", read_value),
             ("pattern", "regex"): lambda: setattr(DEFINITION, "read_pattern", regex),
             ("pattern", "readable"): lambda: setattr(DEFINITION, "read_pattern", read_readable),

@@ -1,0 +1,147 @@
+use core
+
+// The network, for any server: it listens on a host and a port, and answers each
+// request with what a line gives. It knows nothing of pages or apis: what a request
+// is answered with is up to the line (web/server's is a website). Its state is
+// self["store"]["http"]: "server", "request", and "stop" (set it to stop listening).
+
+// Listens on the host A0 ("127.0.0.1": only this computer; "0.0.0.0": the computers on the network too) and the port A1 (0: a free one), and answers each request with the value of the line A2: an answer (`an answer with status …`), or a text, an HTML page. A2 runs for each request with variables of its own, on top of those of the file of this line; an error in it answers 500. Between requests, it runs the lines `every second while listening` keeps. It runs until Ctrl+C.
+// Example: listen on "127.0.0.1" and 8000, answering with "<p>hi</p>"
+//          → every address answers <p>hi</p> (not checked)
+python[written] listen on A0 and A1, answering with A2
+    import html
+    import http.server
+    import threading
+    import time
+    import urllib.parse
+
+    HTTP = self["store"]["http"]
+    ENGINE, FILE, ANSWER = self, self["file"], A2
+    STOP = HTTP["stop"] = threading.Event()
+    EVERY = HTTP.setdefault("every", [])
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.respond(b"")
+
+        def do_POST(self):
+            self.respond(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
+
+        def respond(self, body):
+            url = urllib.parse.urlsplit(self.path)
+            query = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
+            query.update({k: v[-1] for k, v in urllib.parse.parse_qs(body.decode("utf-8", "replace")).items()})
+            HTTP["request"] = {"path": url.path, "query": query}
+            try:
+                with ENGINE.own_variables(FILE):
+                    answer = ENGINE.run(ANSWER)
+            except DefException as error:
+                answer = (500, "text/html; charset=utf-8", "<h1>500</h1><pre>" + html.escape(" ".join(map(str, error.args))) + "</pre>")
+            finally:
+                HTTP["request"] = None
+            status, kind, content = answer if isinstance(answer, tuple) else (200, "text/html; charset=utf-8", answer)
+            data = content if isinstance(content, bytes) else as_text(content).encode()
+            self.send_response(status)
+            self.send_header("Content-Type", kind)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, format, *args):
+            ENGINE.say(self.command + " " + self.path + " " + str(args[1] if len(args) > 1 else ""))
+
+    def open_server(host, port):
+        try:
+            server = http.server.HTTPServer((host, port), Handler)
+        except OSError as error:
+            raise DefException("cannot serve on port " + str(port) + ": " + (error.strerror or str(error)))
+        server.timeout = 0.1  # between requests: the lines kept for every second, and `stop`
+        return server
+
+    HTTP["open"] = open_server
+    HTTP["server"] = open_server(as_text(self.run(A0)), number(self.run(A1)))
+    ENGINE.say("serving on " + ENGINE.run("the address it listens on") + "  (Ctrl+C to stop)")
+    LOOKED = time.monotonic()
+    try:
+        while not STOP.is_set():
+            HTTP["server"].handle_request()
+            if time.monotonic() - LOOKED >= 1:
+                LOOKED = time.monotonic()
+                for LINE, WHERE in list(EVERY):
+                    try:
+                        with ENGINE.own_variables(WHERE):
+                            ENGINE.run(LINE)
+                    except DefException as error:
+                        ENGINE.say(" ".join(map(str, error.args)))
+    except KeyboardInterrupt:
+        ENGINE.say("server stopped")
+    finally:
+        HTTP.pop("server").server_close()
+        EVERY.clear()
+
+// Listens on the host A0 and the port A1 instead, while it listens: the new one opens before the old one closes. If it can't, the old one stays, and it is an error that says why.
+// Example: listen again on "127.0.0.1" and 8001
+//          → it listens on port 8001 now (not checked)
+python[written] listen again on A0 and A1
+    HTTP = self["store"]["http"]
+    OLD = HTTP["server"]
+    HOST, PORT = as_text(self.run(A0)), number(self.run(A1))
+    WHERE = self.run("the address it listens on")
+    try:
+        NEW = HTTP["open"](HOST, PORT)
+    except DefException as ERROR:
+        if PORT != OLD.server_address[1]:
+            raise DefException(" ".join(map(str, ERROR.args)) + "; still on " + WHERE)
+        # the same port, for other computers or only this one: the old one closes first
+        OLD.server_close()
+        try:
+            NEW = HTTP["open"](HOST, PORT)
+        except DefException:
+            HTTP["server"] = HTTP["open"](OLD.server_address[0], OLD.server_address[1])
+            raise
+    else:
+        OLD.server_close()
+    HTTP["server"] = NEW
+
+// Keeps the line A0, to run about once a second between requests while it listens, with variables of its own, on top of those of the file of this line.
+// Example: every second while listening : look at the settings again
+//          → looks at them once a second (not checked)
+python[written] every second while listening : A0
+    self["store"]["http"].setdefault("every", []).append((A0, self["file"]))
+
+// An answer to a request: its status (200, 404, ...), the kind of its content (text/html, application/json, ...), and the content, a text or bytes.
+// Example: an answer with status 404, kind "text/plain" and content "no"
+//          → (404, "text/plain", "no")
+python an answer with status A0, kind A1 and content A2
+    return (number(A0), as_text(A1), A2)
+
+// The address the request asks for, like /hello; empty outside a request.
+// Example: the requested path, for GET /hello
+//          → "/hello"
+python the requested path
+    return (self["store"]["http"].get("request") or {}).get("path", "")
+
+// The request's query: `?name=Sam` in its address, and a form's fields, as a table.
+// Example: the query, for GET /hello?name=Sam
+//          → {"name": "Sam"}
+python the query
+    return (self["store"]["http"].get("request") or {}).get("query", {})
+
+// Where it listens, as a browser opens it: http://localhost:8000.
+// Example: the address it listens on
+//          → "http://localhost:8000", while it listens on port 8000 (not checked)
+python the address it listens on
+    HOST, PORT = self["store"]["http"]["server"].server_address[:2]
+    return "http://" + ("localhost" if HOST == "127.0.0.1" else HOST) + ":" + str(PORT)
+
+// The host it listens on: "127.0.0.1", or "0.0.0.0".
+// Example: the host it listens on
+//          → "127.0.0.1" (not checked)
+python the host it listens on
+    return self["store"]["http"]["server"].server_address[0]
+
+// The port it listens on.
+// Example: the port it listens on
+//          → 8000, while it listens on port 8000 (not checked)
+python the port it listens on
+    return self["store"]["http"]["server"].server_address[1]

@@ -1,7 +1,10 @@
-use flag/written
+use core
+use flag/later
+use language/html
+use http
 
-// A small web server, for any website. Its bodies are Python: they touch the network,
-// files and the request, which def-lang can't. What a page shows is up to your defs.
+// A small web server, for any website. What a page shows is up to your defs; how a
+// request comes and goes is web/http's.
 //
 //   server on port 8000
 //   page "/" shows "<h1>Hello</h1>"
@@ -14,79 +17,93 @@ use flag/written
 // Inside a page:  query "name"  is ?name=... from the address or a form,
 // and  template "file.html"  fills in {{ def-lang }} parts of a file.
 
+// ---- the website: what the lines below say, and each request reads
+
+shared host is "127.0.0.1"
+shared port is 8000
+shared pages is a new table
+shared apis is a new table
+shared sent is a new table
+shared served is a new table
+shared folders is []
+shared settingsfile is "settings.toml"
+shared current is a new table
+shared stamp is 0
+
 // Sets the port of the website. Only this computer can connect.
 // Example: server on port 8000
 //          → the website is at http://localhost:8000 (not checked)
-python server on port A0
-    self["store"]["web"]["port"] = number(A0)
-    self["store"]["web"]["host"] = "127.0.0.1"
+def server on port A0
+    port is A0
+    host is "127.0.0.1"
 
 // Like `server on port`, but other computers on the network can connect too.
 // Example: server on port 8000 for everyone
 //          → other computers on the network can open it too (not checked)
-python server on port A0 for everyone
-    self["store"]["web"]["port"] = number(A0)
-    self["store"]["web"]["host"] = "0.0.0.0"
+def server on port A0 for everyone
+    port is A0
+    host is "0.0.0.0"
 
 // Shows A1 at the address A0. A1 runs again on every visit.
 // Example: page "/hello" shows "<h1>Hi</h1>"
 //          → GET /hello answers <h1>Hi</h1>
-python[written] page A0 shows A1
-    # with the file of this line: a visit runs A1 with that file's variables
-    self["store"]["web"].setdefault("pages", {})[as_text(self.run(A0))] = (A1, self["file"])
+def[later] page A0 shows A1
+    put A1 in pages at the value of A0
 
 // The website's assets (css, images, any file) are the files in the folder A0, sent as they are: /style.css is A0/style.css. The folder is relative to the program.
 // Example: the assets are in "files"
 //          → GET /a.txt answers hi, when files/a.txt holds hi
-python[written] the assets are in A0
-python[written] assets are in A0
-    FOLDER = (self["program"] / as_text(self.run(A0))).resolve()
-    if not FOLDER.is_dir():
-        raise DefException("no folder " + as_text(A0))
-    self["store"]["web"].setdefault("folders", []).append(FOLDER)
+def the assets are in A0
+def assets are in A0
+    add the folder A0 to folders
 
 // The value of `?A0=...` in the address, or of a form field; empty if missing. On a page it is HTML-escaped, so visitors can't inject tags; an api sends it as data.
 // Example: query "name", for GET /hello?name=Sam
 //          → "Sam"
-python query A0
-    import html
-    REQUEST = self["store"]["web"].get("request") or {}
-    VALUE = str(REQUEST.get("query", {}).get(as_text(A0), ""))
-    return html.escape(VALUE) if REQUEST.get("page", True) else VALUE
+def query A0
+    value is the query at A0 if the query has A0 otherwise ""
+    value if apis has the requested path otherwise value as html
 
 // At the address A0, runs A1 and sends the values named in A2 (separated by commas) as JSON: variables A1 set, shared variables, or defs. Each request has its own variables, so one visitor's values never reach another. For a single page application.
 // Example: api "/api/sum" runs total is sum of [1, 2] and sends total
 //          → GET /api/sum answers {"total": 3}
-python[written] api A0 runs A1 and sends A2
-    self["store"]["web"].setdefault("apis", {})[as_text(self.run(A0))] = (A1, [name.strip() for name in A2.split(",")], self["file"])
+def[later] api A0 runs A1 and sends A2
+    address is the value of A0
+    put A1 in apis at address
+    put A2 in sent at address
 
 // At the address A0, sends the values named in A1 (separated by commas) as JSON: defs (run for this request) or shared variables.
 // Example: api "/api/visits" sends visits
 //          → GET /api/visits answers {"visits": 3}, when visits was 3
-python[written] api A0 sends A1
-    self["store"]["web"].setdefault("apis", {})[as_text(self.run(A0))] = (None, [name.strip() for name in A1.split(",")], self["file"])
+def[later] api A0 sends A1
+    address is the value of A0
+    put "" in apis at address
+    put A1 in sent at address
 
 // Shows A0 at the address A1 and every address under it (A1 "/" is /, /bmi, /hello, ...) that no api, page or asset answers and that has no file extension. A0 runs again on every visit. For a single page application, so its links and refreshes work; with several, the longest address wins.
 // Example: serve "<p>app</p>" at "/"
 //          → GET /bmi answers <p>app</p>
-python[written] serve A0 at A1
-    self["store"]["web"].setdefault("served", {})[as_text(self.run(A1)).rstrip("/") or "/"] = (A0, self["file"])
+def[later] serve A0 at A1
+    put A0 in served at the address the value of A1
 
 // The address of the page being visited, like /hello.
 // Example: requested path, for GET /hello
 //          → "/hello"
-python requested path
-    REQUEST = self["store"]["web"].get("request") or {}
-    return REQUEST.get("path", "")
+def requested path
+    the requested path
 
 // Reads an HTML file and fills in each `{{ ... }}` with the value of the def-lang inside it, HTML-escaped.
 // Example: template "pages/hi.html"
 //          → "<p>2</p>", when pages/hi.html holds <p>{{ 1 + 1 }}</p>
-python template A0
-    import html
-    import re
-    TEXT = (self["program"] / as_text(A0)).read_text()
-    return Code(re.sub(r"\{\{(.+?)\}\}", lambda m: html.escape(as_text(self.run(m.group(1).strip()))), TEXT))
+def[written] template A0
+    filling is the text of file A0
+    filling with each {{ }} filled in
+
+// Where the settings are, instead of settings.toml: a file, relative to the program ("": none).
+// Example: the settings are in "website.toml"
+//          → start the server reads website.toml (not checked)
+def the settings are in A0
+    settingsfile is A0
 
 // Starts the website. It runs until Ctrl+C. How it runs comes from settings.toml in the program's folder, if there is one, and the file is read again whenever it is saved, while the website runs:
 //   port = 8000          the port (it wins over `server on port`)
@@ -95,227 +112,191 @@ python template A0
 // The settings file itself is looked at every second. A new port or everyone opens the new server before the old one closes; variables and defs stay. A setting that can't be used is reported and the last settings stay. A file read again also gets its new `use` lines; only main.def itself needs a restart.
 // Example: start the server
 //          → serving on http://localhost:8000 until Ctrl+C (not checked)
-python start the server
-    import html
-    import http.server
-    import json
-    import mimetypes
-    import threading
-    import time
-    import tomllib
-    import urllib.parse
+def start the server
+    current is the settings
+    stamp is the time of file settingsfile
+    say what it watches
+    every second while listening : look at the settings again
+    in the scope of http, listen on the host of current and the port of current, answering with the answer to the request
 
-    WEB = self["store"]["web"]
-    WEB.setdefault("pages", {})
-    WEB.setdefault("folders", [])
-    ENGINE = self
-    SETTINGS_FILE = WEB["settings_file"] if "settings_file" in WEB else (ENGINE["program"] / "settings.toml").resolve()
-    KINDS = {"port": int, "everyone": bool, "watch": (int, float)}
-    SETTINGS_EVERY = 1  # seconds between looks at the settings file
+// ---- answering a request: small phrases, read inside one another
 
-    def read_settings():
-        """main.def's settings, with the settings file's over them."""
-        settings = {"port": WEB.get("port", 8000), "everyone": WEB.get("host") == "0.0.0.0", "watch": 0}
-        if SETTINGS_FILE is None or not SETTINGS_FILE.is_file():
-            return settings
-        try:
-            found = tomllib.loads(SETTINGS_FILE.read_text())
-        except tomllib.TOMLDecodeError as error:
-            raise DefException(SETTINGS_FILE.name + ": " + str(error))
-        for name, value in found.items():
-            if name not in KINDS:
-                raise DefException(SETTINGS_FILE.name + ": unknown setting '" + name + "' (the settings are " + ", ".join(KINDS) + ")")
-            if isinstance(value, bool) != (KINDS[name] is bool) or not isinstance(value, KINDS[name]):
-                kind = {int: "a whole number", bool: "true or false"}.get(KINDS[name], "a number")
-                raise DefException(SETTINGS_FILE.name + ": " + name + " must be " + kind)
-        if not 0 <= found.get("port", 0) <= 65535:
-            raise DefException(SETTINGS_FILE.name + ": port must be between 0 and 65535")
-        if found.get("watch", 0) < 0 or 0 < found.get("watch", 0) < 0.1:
-            raise DefException(SETTINGS_FILE.name + ": watch is 0 (off), or at least 0.1 seconds")
-        settings.update(found)
-        return settings
+// What the website answers the request with.
+def the answer to the request
+    the answer at the requested path
 
-    def stamp():
-        try:
-            return SETTINGS_FILE.stat().st_mtime_ns
-        except (AttributeError, OSError):
-            return None
+// What the website answers at the address A0: its api, its page, one of its assets, the page served at it or above it, or not found.
+def the answer at A0
+    the api answer at A0 if apis has A0 otherwise the page answer at A0
 
-    def address(settings):
-        return ("0.0.0.0" if settings["everyone"] else "127.0.0.1", settings["port"])
+// The api at A0: the values it sends, as JSON; an error's message, if it fails.
+def the api answer at A0
+    line is apis at A0
+    names is sent at A0
+    the json answer for names after line, or if that fails, a json error error
 
-    def where(server):
-        host, port = server.server_address[:2]
-        return "http://" + ("localhost" if host == "127.0.0.1" else host) + ":" + str(port)
+def the json answer for A0 after A1
+    values is the values of A0 after A1
+    a json answer values
 
-    def watching(settings):
-        return "  (watching .def files every " + as_text(settings["watch"]) + " s)" if settings["watch"] else ""
+def the page answer at A0
+    page is pages at A0
+    the html answer to page if page otherwise the asset answer at A0
 
-    def shown(path):
-        for folder in (ENGINE["program"], PROJECT):
-            if folder and path.is_relative_to(folder):
-                return str(path.relative_to(folder))
-        return path.name
+def the asset answer at A0
+    found is the file A0 in folders
+    the file answer found if found otherwise the served answer at A0
 
-    from pathlib import Path
-    PROJECT = Path.cwd()
-    STATE = {"settings": read_settings(), "stamp": stamp(), "checked": time.monotonic()}
+// The page served at the address A0 or above it, unless A0 names a file (with a dot).
+def the served answer at A0
+    address is the address A0
+    page is served at the served address for address
+    file is A0 names a file
+    the html answer to page if both page and not file otherwise not found
 
-    class Handler(http.server.BaseHTTPRequestHandler):
-        def do_GET(self):
-            self.respond(b"")
+// The longest address a page is served at, at A0 or above it; "" if there is none.
+def the served address for A0
+    best is ""
+    for each place in names of served : best is the longer of best and place if place covers A0 otherwise best
+    best
 
-        def do_POST(self):
-            self.respond(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
+def the longer of A0 and A1
+    A1 if length of A1 > length of A0 otherwise A0
 
-        def respond(self, body):
-            url = urllib.parse.urlsplit(self.path)
-            query = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
-            query.update({k: v[-1] for k, v in urllib.parse.parse_qs(body.decode("utf-8", "replace")).items()})
-            WEB["request"] = {"path": url.path, "query": query, "page": url.path not in WEB.get("apis", {})}
-            try:
-                self.answer(url)
-            finally:
-                WEB["request"] = None
+// True if the address A0 is A1, or above it: "/" covers every address, /admin covers /admin/users.
+def A0 covers A1
+    root is A0 = "/"
+    same is A0 = A1
+    prefix is A0 "/"
+    under is A1 starts with prefix
+    near is either root or same
+    either near or under
 
-        def run_for(self, code, file):
-            """Run a page's or an api's words for this request: with variables of the request's
-            own, on top of those of the file the page or api line is in. Only shared ones
-            outlive the request."""
-            with ENGINE.own_variables(file):
-                return ENGINE.run(code)
+// True if the address A0 ends with a file's name, with a dot: /style.css.
+def A0 names a file
+    parts is A0 split by "/"
+    part is last of parts
+    part contains "."
 
-        def answer(self, url):
-            try:
-                if url.path in WEB.get("apis", {}):
-                    return self.api(*WEB["apis"][url.path])
-                if url.path in WEB["pages"]:
-                    self.fresh()
-                    page = as_text(self.run_for(*WEB["pages"][url.path]))
-                    return self.send(200, page.encode(), "text/html; charset=utf-8")
-                for folder in WEB["folders"]:
-                    file = (folder / urllib.parse.unquote(url.path).lstrip("/")).resolve()
-                    if file.is_dir():
-                        file = file / "index.html"
-                    if file.is_relative_to(folder) and file.is_file():
-                        kind = mimetypes.guess_type(file.name)[0] or "application/octet-stream"
-                        return self.send(200, file.read_bytes(), kind)
-                last = url.path.rstrip("/").rsplit("/", 1)[-1]
-                if "." not in last:
-                    path = url.path.rstrip("/") or "/"
-                    under = [at for at in WEB.get("served", {}) if at == "/" or path == at or path.startswith(at + "/")]
-                    if under:
-                        self.fresh()
-                        page = as_text(self.run_for(*WEB["served"][max(under, key=len)]))
-                        return self.send(200, page.encode(), "text/html; charset=utf-8")
-                self.send(404, b"<h1>404</h1><p>page not found</p>", "text/html; charset=utf-8")
-            except DefException as error:
-                message = "<h1>500</h1><pre>" + html.escape(" ".join(map(str, error.args))) + "</pre>"
-                self.send(500, message.encode(), "text/html; charset=utf-8")
+// The address A0 without "/" at its end; "/" stays "/".
+def the address A0
+    cut is A0 without "/" at the end
+    cut if cut otherwise "/"
 
-        def fresh(self):
-            """With watch on: read the .def files saved since the last look again."""
-            settings = STATE["settings"]
-            if not settings["watch"] or time.monotonic() - STATE["checked"] < settings["watch"]:
-                return
-            STATE["checked"] = time.monotonic()
-            for path in ENGINE.changed_files():
-                try:
-                    ENGINE.reload(path)
-                    ENGINE.say("read again: " + shown(path))
-                except DefException as error:
-                    ENGINE.say("not read again: " + " ".join(map(str, error.args)) + "; the old defs stay")
+// A page, from the line that makes it: run for this request, after the changed .def files are read again (with watch on).
+def the html answer to A0
+    watch is current at "watch"
+    read the changed files again every watch seconds
+    content is the value of A0
+    an html answer content
 
-        def api(self, run, names, file):
-            try:
-                with ENGINE.own_variables(file):
-                    if run:
-                        ENGINE.run(run)
-                    data = {name: ENGINE.run(name) for name in names}
-                self.send(200, json.dumps(data, default=as_text).encode(), "application/json")
-            except DefException as error:
-                message = {"error": " ".join(map(str, error.args))}
-                self.send(400, json.dumps(message).encode(), "application/json")
+def an html answer A0
+    an answer with status 200, kind "text/html; charset=utf-8" and content A0
 
-        def send(self, status, data, kind):
-            self.send_response(status)
-            self.send_header("Content-Type", kind)
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
+def a json answer A0
+    data is A0 as json
+    an answer with status 200, kind "application/json" and content data
 
-        def log_message(self, format, *args):
-            ENGINE.say(self.command + " " + self.path + " " + str(args[1] if len(args) > 1 else ""))
+def a json error A0
+    body is a new table
+    put A0 in body at "error"
+    data is body as json
+    an answer with status 400, kind "application/json" and content data
 
-    def open_server(settings):
-        try:
-            return http.server.HTTPServer(address(settings), Handler)
-        except OSError as error:
-            raise DefException("cannot serve on port " + str(settings["port"]) + ": " + (error.strerror or str(error)))
+def the file answer A0
+    type is the kind of file A0
+    bytes is the bytes of file A0
+    an answer with status 200, kind type and content bytes
 
-    def move(server, settings):
-        """The server for the new settings, opened before the old one closes; the old
-        one (still open, or opened again) if it can't be."""
-        try:
-            return open_server(settings)
-        except DefException as error:
-            if settings["port"] != server.server_address[1]:
-                ENGINE.say("settings not changed: " + " ".join(map(str, error.args)) + "; still on " + where(server))
-                return server
-        # the same port, for other computers or only this one: the old one closes first
-        server.server_close()
-        try:
-            return open_server(settings)
-        except DefException as error:
-            ENGINE.say("settings not changed: " + " ".join(map(str, error.args)))
-            return open_server(STATE["settings"])
+def not found
+    an answer with status 404, kind "text/html; charset=utf-8" and content "<h1>404</h1><p>page not found</p>"
 
-    STOP = threading.Event()
+// ---- settings.toml: how the website runs
 
-    def watch():
-        """Reads the settings file again when it is saved."""
-        while not STOP.wait(SETTINGS_EVERY):
-            now = stamp()
-            if now == STATE["stamp"]:
-                continue
-            STATE["stamp"] = now
-            try:
-                settings = read_settings()
-            except DefException as error:
-                ENGINE.say("settings not changed: " + " ".join(map(str, error.args)) + "; the last settings stay")
-                continue
-            host, port = WEB["server"].server_address[:2]
-            if address(settings)[0] != host or settings["port"] not in (port, STATE["settings"]["port"]):
-                WEB["move_to"] = settings
-                WEB["server"].shutdown()  # the loop below moves it
-                continue
-            changes = [name + " is " + json.dumps(settings[name]) for name in ("watch",) if settings[name] != STATE["settings"][name]]
-            STATE["settings"] = settings
-            if changes:
-                ENGINE.say("settings changed: " + ", ".join(changes))
+// How the website runs: the program's settings, with settings.toml's over them.
+def the settings
+    the settings in the file over the settings of the program
 
-    SERVER = open_server(STATE["settings"])
-    WEB["server"] = SERVER
-    ENGINE.say("serving on " + where(SERVER) + watching(STATE["settings"]) + "  (Ctrl+C to stop)")
-    if SETTINGS_FILE is not None:
-        threading.Thread(target=watch, daemon=True).start()
-    try:
-        while True:
-            SERVER.serve_forever()
-            settings = WEB.pop("move_to", None)
-            if settings is None:
-                break  # stopped
-            moved = move(SERVER, settings)
-            if moved is SERVER:
-                continue  # still the old one
-            SERVER.server_close()
-            SERVER = moved
-            WEB["server"] = SERVER
-            if address(settings) == (SERVER.server_address[0], settings["port"]):
-                STATE["settings"] = settings
-                ENGINE.say("settings changed: now on " + where(SERVER) + watching(settings))
-    except KeyboardInterrupt:
-        ENGINE.say("server stopped")
-    finally:
-        STOP.set()
-        SERVER.server_close()
+// The program's settings: the port and host of `server on port`, and no watching.
+def the settings of the program
+    settings is a new table
+    put port in settings at "port"
+    put host in settings at "host"
+    put 0 in settings at "watch"
+    settings
+
+// The settings in settings.toml, checked; none without the file. An error says which setting can't be used.
+def the settings in the file
+    found is a new table
+    settingsfile is a file ?
+        found is the table in file settingsfile
+    for each name in names of found : check the setting name in found
+    everyone is found at "everyone"
+    found has "everyone" ?
+        put the host for everyone in found at "host"
+    found
+
+// An error unless the setting A0 in the table A1 is one there is, of its kind.
+def check the setting A0 in A1
+    value is A1 at A0
+    not ["port", "everyone", "watch"] contains A0 ?
+        fail with "settings.toml: unknown setting '" A0 "' (the settings are port, everyone, watch)"
+    A0 = "port" ?
+        not value is a whole number ?
+            fail with "settings.toml: port must be a whole number"
+        either value < 0 or value > 65535 ?
+            fail with "settings.toml: port must be between 0 and 65535"
+    A0 = "everyone" ?
+        not value is true or false ?
+            fail with "settings.toml: everyone must be true or false"
+    A0 = "watch" ?
+        not value is a number ?
+            fail with "settings.toml: watch must be a number"
+        either value < 0 or both value > 0 and value < 0.1 ?
+            fail with "settings.toml: watch is 0 (off), or at least 0.1 seconds"
+
+def the host for A0
+    "0.0.0.0" if A0 otherwise "127.0.0.1"
+
+def the host of A0
+    A0 at "host"
+
+def the port of A0
+    A0 at "port"
+
+// settings.toml again, when it was saved since it was read: a new port or everyone moves the server; a setting that can't be used keeps the last ones.
+def look at the settings again
+    saved is the time of file settingsfile
+    not saved = stamp ?
+        stamp is saved
+        take the new settings, or if that fails, say "settings not changed: " error "; the last settings stay"
+
+def take the new settings
+    new is the settings
+    there is the host of new = the host it listens on
+    here is the port of new = the port it listens on
+    kept is the port of new = the port of current
+    still is either here or kept
+    moving is not both there and still
+    moving ?
+        move to new
+    is not ?
+        say the changes from current to new
+        current is new
+
+def move to A0
+    in the scope of http, listen again on the host of A0 and the port of A0
+    current is A0
+    say "settings changed: now on " the address it listens on
+    say what it watches
+
+def say the changes from A0 to A1
+    old is A0 at "watch"
+    new is A1 at "watch"
+    not old = new ?
+        say "settings changed: watch is " new
+
+def say what it watches
+    watch is current at "watch"
+    watch > 0 ?
+        say "watching .def files every " watch " s"

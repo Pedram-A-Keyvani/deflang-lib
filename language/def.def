@@ -1,13 +1,32 @@
-// def-lang: a def whose body is def-lang. Its lines run one by one, like a file's lines, with A0, A1, ... put in: their values written as code, or the words as they are written for a def that keeps its arguments' words. Its value is the value of the last line that has one. The variables it sets are its own and end with it; a def that keeps its arguments' words, or an entry's `does`, runs where it acts.
+// def-lang: a def whose body is def-lang. Its lines run one by one, like a file's lines, with A0, A1, ... put in: a number, true or false, or nothing written as code; any other value (a text, a list, a table, a line kept for later) as a variable of the call, named A0, A1, ...; or the words as they are written for a def that keeps its arguments' words. Its value is the value of the last line that has one. The variables it sets are its own and end with it; a def that keeps its arguments' words, or an entry's `does`, runs where it acts.
 // Example: twice 4, with def twice A0 whose body is A0 * 2
 //          → 8 (not checked)
 language def
     does in python
         ENTRY = self["entry"]
-        TEXTS = ENTRY["values"] if ENTRY["as written"] else [as_code(value) for value in ENTRY["values"]]
+        VALUES = ENTRY["values"]
+
+        def written(value):
+            """Whether it goes in as code: a number, true or false, nothing. A text there could
+            join the words around it (`A0 "A1"`); by its name, it is one value."""
+            return value is None or isinstance(value, (bool, int, float))
+
+        # the words, for a def that keeps them (lines kept for later are values)
+        WORDS = ENTRY["as written"] and not any(isinstance(value, Line) for value in VALUES)
+        IN_PLACE = WORDS or ENTRY["in place"]
+        OWN, TEXTS = {}, []
+        for N, VALUE in enumerate(VALUES):
+            if WORDS:
+                TEXTS.append(VALUE)
+            elif IN_PLACE or written(VALUE):
+                TEXTS.append(as_code(VALUE))
+            else:
+                OWN["A" + str(N)] = VALUE
+                TEXTS.append("A" + str(N))
         LINES = ENTRY["fill"](ENTRY["template"], TEXTS)
-        if ENTRY["as written"] or ENTRY["in place"]:
+        if IN_PLACE:
             ENTRY["body"] = self.run_lines(LINES, ENTRY["definition"])
         else:
             with self.own_variables(ENTRY["definition"].file):
+                self["variables"].update(OWN)
                 ENTRY["body"] = self.run_lines(LINES, ENTRY["definition"])

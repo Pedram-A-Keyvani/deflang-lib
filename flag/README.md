@@ -8,6 +8,7 @@ commas: `python[written, regex] …`. One file each, written in def with the wor
 |---|---|---|
 | `written.def` | `use flag/written` | `[written]`: the definition gets its arguments as they are written, not their values |
 | `regex.def` | `use flag/regex` | `[regex]`: the pattern is a raw regular expression |
+| `later.def` | `use flag/later` | `[later]`: the definition gets its arguments as lines to run later, each with the file it is written in |
 
 ## written
 
@@ -39,6 +40,23 @@ python[regex] (A0: \d+)% or (A0: \d+) percent
 flag regex
     does in def
         set pattern to regex
+```
+
+## later
+
+Use it when a definition keeps a line to run **later**, maybe many times: each
+argument is the line as it is written, with the file it is written in, and
+`the value of A0` runs it there, with variables of its own.
+
+```
+def[later] page A0 shows A1
+    put A1 in pages at the value of A0
+```
+
+```
+flag later
+    does in def
+        set arguments to kept
 ```
 
 **Writing your own:** [ENTRIES.md](../ENTRIES.md) says what each word of a flag means.

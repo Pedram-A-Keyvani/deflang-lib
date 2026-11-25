@@ -12,8 +12,10 @@ Languages for definition bodies, one file each:
 ## def
 
 - The body's lines run one by one, like a file's lines, with `A0`, `A1`, … put in:
-  their values written as code, or the words as they are written for a definition
-  that keeps its arguments' words (`def[written]`).
+  a number, true or false, or nothing written as code; any other value (a text, a
+  list, a table, a line kept for later) as a variable of the call named `A0`, `A1`,
+  …, so a text never joins the words around it; or the words as they are written for
+  a definition that keeps its arguments' words (`def[written]`).
 - Its value is the value of the last line that has one.
 - The variables it sets are its own and end with it. A `written` definition has none
   of its own: it runs where its words were written, with the variables there.
@@ -38,6 +40,9 @@ say 4 doubled
   `<style def="hello style"></style>`.
 - An `html`, `javascript` or `css` def's result goes in as it is (it is your own
   code); any other value is escaped.
+- `A0 with each {{ }} filled in`: the HTML text `A0` with each `{{ … }}` filled in
+  with the value of the def-lang inside it, escaped, run where the line runs (the web
+  server's `template "file.html"` is this, for a file).
 
 ```
 use core

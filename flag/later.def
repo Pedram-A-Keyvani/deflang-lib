@@ -1,0 +1,11 @@
+use language/def
+
+// The definition gets its arguments as lines to run later, each with the file it is written in: `the value of A0` runs one there, with variables of its own, as often as it is needed. For a def that keeps a line to run on every visit, like `page "/" shows home page`.
+// Example: def[later] keep A0, whose body puts A0 in a table, then `the value of` it later
+//          → runs A0 in the file `keep` was used in (not checked)
+flag later
+    does in def
+        set arguments to kept
+
+// the words its `does` says: core's kernel.def
+use core/kernel

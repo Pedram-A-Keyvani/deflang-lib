@@ -29,8 +29,10 @@ use lists
 use joined
 use logic
 use comparison
+use tables
 use math
 use text
 use time
 use numbers
+use files
 use phrases
