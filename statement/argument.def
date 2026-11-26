@@ -5,6 +5,7 @@ use entry
 // Example: argument is X
 //          → `python X0 times X1` is a definition with two arguments (not checked)
 statement argument
+    reading yes
     words argument is A0
     does in def[written]
         set argument name to A0

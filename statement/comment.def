@@ -5,6 +5,7 @@ use entry
 // Example: comment is #
 //          → lines starting with # are comments (not checked)
 statement comment
+    reading yes
     words comment is A0
     does in def[written]
         set comment marker to A0

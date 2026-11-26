@@ -5,6 +5,7 @@ use entry
 // Example: in the scope of io/audio, listen on dance
 //          → `listen on dance` is io/audio's, where another file has `listen on A0` too (not checked)
 statement scoped
+    reading yes
     words in the scope of (A0: [^,]+), A1
     does in def[written]
         set scope to A0
@@ -14,6 +15,7 @@ statement scoped
 // Example: in the scope of web/http
 //          → the lines one level under it read web/http's phrases first (not checked)
 statement scope
+    reading yes
     words in the scope of A0
     does in def[written]
         set scope to A0

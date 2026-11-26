@@ -5,6 +5,7 @@ use entry
 // Example: indent 2
 //          → a line two spaces in is one level in (not checked)
 statement indent
+    reading yes
     words indent A0
     does in def[written]
         set indent to A0
