@@ -11,6 +11,7 @@
 modifier verbatim
     does in python
         self["entry"]["definition"].read_argument = lambda text, read: text
+        self["entry"]["definition"].argument_mode = "written"
         del self["modifier"]["verbatim"]
 
 // Sets A0 to A1 on what the entry acts on (the words as they are written):
@@ -75,13 +76,13 @@ verbatim python set A0 to A1
                 ("indent", TO): place("indent", int(TO) if TO.isdigit() else TO), ("scope", TO): scope}
     elif DEFINITION is not None:
         SETS = {
-            ("arguments", "as written"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: text),
-            ("arguments", "kept"): lambda: setattr(DEFINITION, "read_argument", lambda text, read: Line(text, self["file"])),
-            ("arguments", "values"): lambda: setattr(DEFINITION, "read_argument", read_value),
-            ("pattern", "regex"): lambda: setattr(DEFINITION, "read_pattern", regex),
-            ("pattern", "readable"): lambda: setattr(DEFINITION, "read_pattern", read_readable),
-            ("seen by", "the file"): lambda: setattr(DEFINITION, "seen_by", lambda file: file == DEFINITION.file),
-            ("seen by", "every file"): lambda: setattr(DEFINITION, "seen_by", seen_everywhere),
+            ("arguments", "as written"): lambda: (setattr(DEFINITION, "argument_mode", "written"), setattr(DEFINITION, "read_argument", lambda text, read: text)),
+            ("arguments", "kept"): lambda: (setattr(DEFINITION, "argument_mode", "kept"), setattr(DEFINITION, "read_argument", lambda text, read: Line(text, self["file"]))),
+            ("arguments", "values"): lambda: (setattr(DEFINITION, "argument_mode", "values"), setattr(DEFINITION, "read_argument", read_value)),
+            ("pattern", "regex"): lambda: (setattr(DEFINITION, "pattern_mode", "regex"), setattr(DEFINITION, "read_pattern", regex)),
+            ("pattern", "readable"): lambda: (setattr(DEFINITION, "pattern_mode", "readable"), setattr(DEFINITION, "read_pattern", read_readable)),
+            ("seen by", "the file"): lambda: (setattr(DEFINITION, "visibility", "file"), setattr(DEFINITION, "seen_by", lambda file: file == DEFINITION.file)),
+            ("seen by", "every file"): lambda: (setattr(DEFINITION, "visibility", "everywhere"), setattr(DEFINITION, "seen_by", seen_everywhere)),
         }
         CAN = sorted(w + " to " + t for w, t in SETS)
     else:
