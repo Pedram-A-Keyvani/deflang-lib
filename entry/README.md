@@ -30,13 +30,15 @@ What `set` sets (the words as they are written):
 |---|---|---|
 | `arguments` | a flag's or a modifier's definition | `as written` (it gets their words), `kept` (lines kept for later, each with its file), or `values` |
 | `pattern` | a flag's or a modifier's definition | `regex` (a raw regular expression), or `readable` |
-| `seen by` | a flag's or a modifier's definition | `the file` (only its own file sees it), or `every file` |
-| `name` | a modifier's name | `shared`: a shared variable of its file |
 | `body` | a language's definition | a value, read as an expression: `upper-case` |
 | `comment marker` | the file of a statement's line | the marker: `#` |
 | `argument name` | the file of a statement's line | the name: `X` |
 | `indent` | the file of a statement's line | a whole number: `2` |
 | `scope` | the lines under a statement's line, and the rest of its `does` | files, or libraries: `web/http and io/audio`; where several files define the same phrase, theirs is read |
+
+A modifier that needs more than a preset declares a `hook CYCLE PHASE in LANGUAGE`
+instead of `does`; see [ENTRIES.md](../ENTRIES.md#9-cycle-hooks). Nothing is installed
+until the modifier is written in front of a line.
 
 ```
 // A flag of your own: the definition gets its arguments' words.

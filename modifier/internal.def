@@ -5,5 +5,9 @@ use entry
 // Example: internal def A0 as meters, in bmi.def
 //          → `as meters` is unknown outside bmi.def (not checked)
 modifier internal
-    does in def
-        set seen by to the file
+    hook define end in python
+        DEFINITION = self["cycle"]["definition"]
+        if DEFINITION is None:
+            raise DefException("internal marks a definition, not a name")
+        DEFINITION.visibility = "file"
+        DEFINITION.seen_by = lambda file: file == DEFINITION.file

@@ -19,8 +19,6 @@ modifier verbatim
 //                   kept to run later, each with its file: `the value of A0`), or `values`
 //   pattern         a definition's: `regex` (a raw regular expression: ` or ` splits
 //                   alternatives, (A0: ...) is an argument), or `readable`
-//   seen by         a definition's: `the file` (only its own file sees it), or `every file`
-//   name            a modifier's name: `shared` (a shared variable of its file)
 //   body            a language's definition: A1, read for its value (`upper-case`)
 //   comment marker  the file of a statement's line: lines starting with A1 are comments
 //   argument name   the file: arguments are written A1 and a number
@@ -28,12 +26,13 @@ modifier verbatim
 //   scope           the statement's line: the rest of its `does` and the lines under it
 //                   are read in the scope of the files A1 (`web/http and io/audio`): where
 //                   several files define the same phrase, theirs is read
+// A modifier in front of a name has no fields: declare a hook on the modifier instead.
 // Outside an entry's `does`, it sets the variable A0, like `A0 is A1`.
 // Example: set x to 2 + 3
 //          → x is 5
 verbatim python set A0 to A1
     import re
-    from deflang.definition import read_readable, read_value, seen_everywhere
+    from deflang.definition import read_readable, read_value
     WHAT, TO = " ".join(A0.split()), A1.strip()
     ENTRY = self["entry"]
     if ENTRY is None:
@@ -48,10 +47,6 @@ verbatim python set A0 to A1
             one = restricted.sub(lambda m: "(?P<a" + m.group(1) + ">", one.strip())
             alternatives.append(argument.sub(lambda m: "(?P<a" + m.group(1) + r">[\s\S]+)", one))
         return alternatives
-
-    def shared():
-        HERE = self["file"]
-        self["files"][HERE]["names"][ENTRY["name"]] = (HERE, ENTRY["name"])
 
     def body():
         ENTRY["body"] = self.run(TO)
@@ -81,13 +76,10 @@ verbatim python set A0 to A1
             ("arguments", "values"): lambda: (setattr(DEFINITION, "argument_mode", "values"), setattr(DEFINITION, "read_argument", read_value)),
             ("pattern", "regex"): lambda: (setattr(DEFINITION, "pattern_mode", "regex"), setattr(DEFINITION, "read_pattern", regex)),
             ("pattern", "readable"): lambda: (setattr(DEFINITION, "pattern_mode", "readable"), setattr(DEFINITION, "read_pattern", read_readable)),
-            ("seen by", "the file"): lambda: (setattr(DEFINITION, "visibility", "file"), setattr(DEFINITION, "seen_by", lambda file: file == DEFINITION.file)),
-            ("seen by", "every file"): lambda: (setattr(DEFINITION, "visibility", "everywhere"), setattr(DEFINITION, "seen_by", seen_everywhere)),
         }
         CAN = sorted(w + " to " + t for w, t in SETS)
     else:
-        SETS = {("name", "shared"): shared}
-        CAN = ["name to shared"]
+        SETS, CAN = {}, ["no fields (write a hook)"]
     if (WHAT, TO) not in SETS:
         raise DefException("set " + WHAT + " to " + TO + ": a " + ENTRY["kind"] + " here sets " + ", ".join(CAN))
     SETS[(WHAT, TO)]()

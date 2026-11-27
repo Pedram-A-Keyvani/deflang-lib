@@ -1,7 +1,8 @@
 # modifier
 
-Modifiers: words in front of a line that change where something is seen. One file
-each, written in def with the words of the `entry` library:
+Modifiers: words in front of a line that change where something is seen. `shared` and
+`internal` are written with `define` hooks, not reserved `set` words, so they act only on
+the line they are written in front of.
 
 | File | Use | Gives |
 |---|---|---|
@@ -21,8 +22,10 @@ shared visits is 0
 
 ```
 modifier shared
-    does in def
-        set name to shared
+    hook define start in python
+        NAME = self["entry"].get("name")
+        HERE = self["file"]
+        self["files"][HERE]["names"][NAME] = (HERE, NAME)
 ```
 
 ## internal
@@ -37,8 +40,11 @@ internal python A0 halved
 
 ```
 modifier internal
-    does in def
-        set seen by to the file
+    hook define end in python
+        DEFINITION = self["cycle"]["definition"]
+        DEFINITION.visibility = "file"
+        DEFINITION.seen_by = lambda file: file == DEFINITION.file
 ```
 
-**Writing your own:** [ENTRIES.md](../ENTRIES.md) says what each word of a modifier means.
+**Writing your own:** [ENTRIES.md](../ENTRIES.md#9-cycle-hooks) says what a hook sees, and
+what the `set` words do.

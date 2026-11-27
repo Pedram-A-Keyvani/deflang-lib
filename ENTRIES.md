@@ -149,8 +149,8 @@ doubling
 - `does in def[written]` gets them as they are written: `show A0` shows `doubling`.
   Without `[written]`, `A0` would be the text `"doubling"`, with its quotes.
 - Several flags go in one pair of brackets: `python[raw, for doubling] …`.
-- What a flag can change: `set arguments to …`, `set pattern to …`,
-  `set seen by to …` ([reference](#7-reference)).
+- What a flag can change: `set arguments to …`, `set pattern to …`
+  ([reference](#7-reference)). A modifier's real capability is a cycle hook.
 
 ## 5. Modifiers
 
@@ -169,8 +169,10 @@ modifier NAME
 ```
 // Only its own file sees it.
 modifier private
-    does in def
-        set seen by to the file
+    hook define end in python
+        DEFINITION = self["cycle"]["definition"]
+        DEFINITION.visibility = "file"
+        DEFINITION.seen_by = lambda file: file == DEFINITION.file
 
 private def A0 halved
     A0 / 2
@@ -203,8 +205,10 @@ unknown name '8 halved'
 ```
 // One variable for the whole program.
 modifier everywhere
-    does in def
-        set name to shared
+    hook define start in python
+        NAME = self["entry"].get("name")
+        HERE = self["file"]
+        self["files"][HERE]["names"][NAME] = (HERE, NAME)
 
 everywhere visits is 0
 ```
@@ -304,9 +308,6 @@ The help of an entry is the comment lines right above it.
 | | | `values` | it gets their values (as at first) |
 | `pattern` | a flag, a modifier | `regex` | the definition's pattern is a raw regular expression: ` or ` splits alternatives, `(A0: …)` is an argument |
 | | | `readable` | it is read as words and arguments (as at first) |
-| `seen by` | a flag, a modifier | `the file` | only the definition's own file sees it |
-| | | `every file` | every file sees it (as at first) |
-| `name` | a modifier, in front of a name | `shared` | the name is a shared variable of its file; another file gets it with `use NAME from FILE` |
 | `body` | a language | a value | the definition's value: `upper-case`, `lower-case`, or any expression |
 | `comment marker` | a statement | a marker | lines starting with it are comments, to the end of the file (each file starts with `//`) |
 | `argument name` | a statement | a name | arguments are written with it and a number, to the end of the file (each file starts with `A`) |
@@ -370,3 +371,18 @@ flag raw
     does in python
         self["entry"]["definition"].read_argument = lambda text, read: text
 ```
+
+## 9. Cycle hooks
+
+An entry can declare `hook CYCLE PHASE in LANGUAGE` in place of, or beside, `does`:
+`file`, `line`, `define`, `call`, `body` or `scope`, with `start`, `end` or `error`.
+Declaring a hook does nothing by itself. Write the entry in front of the line it acts
+on (`watched use part`, `watched say 1`, `watched def double A0`), or put it on a
+definition line as a flag or language. A `define` hook on a name line sees the name in
+`self["entry"]["name"]` (also `self["cycle"]["variable"]`); on a definition line it sees
+the definition in `self["cycle"]["definition"]`. The hook's own declaration is
+`self["cycle"]["owner"]`,
+and `self["cycle"]["state"][owner]` passes a value from `start` to `end`.
+
+`modifier/shared.def` and `modifier/internal.def` use this instead of reserved `set`
+words. Their hooks are stored with the entry and travel in a compiled build.

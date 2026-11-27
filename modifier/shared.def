@@ -5,5 +5,10 @@ use entry
 // Example: shared visits is 0
 //          → visits is 0
 modifier shared
-    does in def
-        set name to shared
+    hook define start in python
+        ENTRY = self["entry"]
+        NAME = ENTRY.get("name") if ENTRY is not None else None
+        if NAME is None or self["cycle"].get("variable") is None or self["cycle"]["definition"] is not None:
+            raise DefException("shared names a variable, not a definition")
+        HERE = self["file"]
+        self["files"][HERE]["names"][NAME] = (HERE, NAME)
