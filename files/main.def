@@ -12,17 +12,14 @@ python the folder A0
         raise DefException("no folder " + as_text(A0))
     return FOLDER
 
-// The file at the address A0 in one of the folders A1 (a folder, or a list of them): /style.css is FOLDER/style.css, and a folder is its index.html. Nothing if there is none, and never a file outside them.
-// Example: the file "/style.css" in folders
+// The file at the relative path A0 in one of the folders A1 (a folder, or a list of them). Nothing if there is none, and never a file outside them. Web addresses, like /style.css or a folder's index.html, are the website library's job.
+// Example: the file "style.css" in folders
 //          → the file FOLDER/style.css, if it is there (not checked)
 python the file A0 in A1
-    import urllib.parse
     from pathlib import Path
     for FOLDER in (A1 if isinstance(A1, list) else [A1]):
-        FOLDER = Path(FOLDER)
-        FILE = (FOLDER / urllib.parse.unquote(as_text(A0)).lstrip("/")).resolve()
-        if FILE.is_dir():
-            FILE = FILE / "index.html"
+        FOLDER = Path(FOLDER).resolve()
+        FILE = (FOLDER / as_text(A0)).resolve()
         if FILE.is_relative_to(FOLDER) and FILE.is_file():
             return FILE
     return None

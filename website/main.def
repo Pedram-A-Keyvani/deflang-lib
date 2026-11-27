@@ -37,6 +37,23 @@ def[later] serve A0 at A1
 
 // ---- answering a request: small phrases, read inside one another
 
+// The web asset at the address A0 in one of the folders A1: URL-decoded, with a leading / removed, and a folder served as its index.html. Nothing if there is none, and never a file outside them.
+// Example: the asset at "/style.css" in folders
+//          → the file FOLDER/style.css, if it is there (not checked)
+python the asset at A0 in A1
+    import urllib.parse
+    from pathlib import Path
+    ADDRESS = urllib.parse.unquote(as_text(A0)).lstrip("/") or "index.html"
+    for FOLDER in (A1 if isinstance(A1, list) else [A1]):
+        FOLDER = Path(FOLDER).resolve()
+        PATH = ADDRESS
+        if (FOLDER / PATH).resolve().is_dir():
+            PATH = (Path(PATH) / "index.html").as_posix()
+        FOUND = self.run("the file " + as_code(PATH) + " in " + as_code(as_text(FOLDER)))
+        if FOUND is not None:
+            return FOUND
+    return None
+
 def the page answer to the request
     page is pages at the requested path
     page ?
@@ -44,7 +61,7 @@ def the page answer to the request
 
 def the asset answer to the request
     address is the requested path
-    found is the file address in folders
+    found is the asset at address in folders
     found ?
         the file answer found
 

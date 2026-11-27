@@ -11,7 +11,7 @@ It uses `flag`, `time` (its `libraries.toml`), installed with it.
 | Words | Does | Example |
 |---|---|---|
 | `the folder A0` | The folder A0; an error if there is none. | `the folder "static"` |
-| `the file A0 in A1` | The file at the address A0 in one of the folders A1 (a folder, or a list of them): /style.css is FOLDER/style.css, and a folder is its index.html. Nothing if there is none, and never a file outside them. | `the file "/style.css" in folders` |
+| `the file A0 in A1` | The file at the relative path A0 in one of the folders A1 (a folder, or a list of them). Nothing if there is none, and never a file outside them. Web addresses and `index.html` belong to the `website` library. | `the file "style.css" in folders` |
 | `A0 is a file` | True if A0 is a file. | `"settings.toml" is a file` |
 | `the time of file A0` | When the file A0 was last saved (a number that grows); nothing if there is no such file. | `the time of file "settings.toml"` |
 | `the text of file A0` | The text in the file A0. | `the text of file "a.txt"` |
